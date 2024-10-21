@@ -36,7 +36,7 @@ $doing_count = Comments::countInbox(Comments::STATUS_DOING);
                     'data-size' => 'modal-xl',
                     'data-toggle' => 'modal',
                     'data-target' => '#modal-pjax',
-                    'data-url' => Url::to(['/ticket/send']),
+                    'data-url' => Url::to(['ticket/send']),
                     'data-reload-pjax-container' => 'mail_box',
 				]) ?>
 			</div>
@@ -83,7 +83,7 @@ $doing_count = Comments::countInbox(Comments::STATUS_DOING);
 				[
 					'attribute' => 'title',
 					'value' => function ($model) {
-						return '<span>' . $model->title . Html::a($model->title, ['/ticket/view', 'id' => $model->id], [
+						return '<span>' . $model->title . Html::a($model->title, ['ticket/view', 'id' => $model->id], [
 							'title' => $model->title,
 							'id' => 'link-to-' . $model->id,
 							'class' => 'showModalButton d-none',

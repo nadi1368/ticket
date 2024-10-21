@@ -167,7 +167,8 @@ class CommentsType extends \yii\db\ActiveRecord
      */
     public function getCreator()
     {
-        return $this->hasOne(User::className(), ['id' => 'creator_id']);
+        $userModelClass = Yii::$app->user->identityClass;
+        return $this->hasOne($userModelClass, ['id' => 'creator_id']);
     }
 
     /**
@@ -175,7 +176,8 @@ class CommentsType extends \yii\db\ActiveRecord
      */
     public function getUpdate()
     {
-        return $this->hasOne(User::className(), ['id' => 'update_id']);
+        $userModelClass = Yii::$app->user->identityClass;
+        return $this->hasOne($userModelClass, ['id' => 'update_id']);
     }
 
     /**

@@ -1,13 +1,14 @@
 <?php
 
 use hesabro\ticket\models\Comments;
+use hesabro\ticket\models\CommentsSearch;
 use yii\helpers\Html;
 use yii\bootstrap4\ActiveForm;
 use kartik\select2\Select2;
 use yii\widgets\MaskedInput;
 
 /* @var $this yii\web\View */
-/* @var $model backend\models\CommentsSearch */
+/* @var $model CommentsSearch */
 /* @var $form yii\bootstrap4\ActiveForm */
 ?>
 
@@ -53,27 +54,6 @@ use yii\widgets\MaskedInput;
                 'mask' => '9999/99/99',
             ]) ?>
         </div>
-
-        <?php // echo $form->field($model, 'class_id') 
-        ?>
-
-        <?php // echo $form->field($model, 'des') 
-        ?>
-
-        <?php // echo $form->field($model, 'css_class') 
-        ?>
-
-        <?php // echo $form->field($model, 'status') 
-        ?>
-
-        <?php // echo $form->field($model, 'due_date') 
-        ?>
-
-        <?php // echo $form->field($model, 'created') 
-        ?>
-
-        <?php // echo $form->field($model, 'changed') 
-        ?>
 
         <div class="col-12 align-self-center text-right">
             <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>

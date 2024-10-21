@@ -328,19 +328,19 @@ class Comments extends \yii\db\ActiveRecord
      */
     public function getUsers()
     {
-        $userModelClass = Yii::$app->user;
-        return $this->hasMany($userModelClass, ['id' => 'user_id'])->viaTable('{{%comments_view}}', ['comment_id' => 'id']);
+        $userModelClass = Yii::$app->user->identityClass;
+        return $this->hasMany($userModelClass, ['id' => 'user_id'])->viaTable('{{%tickets_view}}', ['comment_id' => 'id']);
     }
 
     public function getOwners()
     {
-        $userModelClass = Yii::$app->user;
+        $userModelClass = Yii::$app->user->identityClass;
         return $this->hasMany($userModelClass, ['id' => 'owner']);
     }
 
     public function getCreator()
     {
-        $userModelClass = Yii::$app->user;
+        $userModelClass = Yii::$app->user->identityClass;
         return $this->hasOne($userModelClass, ['id' => 'creator_id']);
     }
 
@@ -450,7 +450,7 @@ class Comments extends \yii\db\ActiveRecord
 
         $currentUserId = Yii::$app->user->id;
 
-        return $firstTicket?->creator_id == $currentUserId || in_array($currentUserId, array_map(fn(User $user) => $user->id, $lastTicket?->users ?: []));
+        return $firstTicket?->creator_id == $currentUserId || in_array($currentUserId, array_map(fn($user) => $user->id, $lastTicket?->users ?: []));
     }
 
     /**
@@ -710,7 +710,7 @@ class Comments extends \yii\db\ActiveRecord
             return $this->des;
         }
 
-        $url = Yii::$app->urlManager->createAbsoluteUrl(['/ticket/inbox']);
+        $url = Yii::$app->urlManager->createAbsoluteUrl(['ticket/inbox']);
         if ($this->send_sms) {
             return 'تیکت جدید' . PHP_EOL . 'برای رفتن به صندوق ورودی تیکت ها روی لینک زیر کلیک کنید.' . PHP_EOL . $url;
         } else {

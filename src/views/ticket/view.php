@@ -1,9 +1,6 @@
 <?php
 
 use hesabro\ticket\models\Comments;
-use yii\helpers\Html;
-use yii\helpers\Url;
-use yii\widgets\Pjax;
 
 /* @var $this yii\web\View */
 /* @var $model Comments */

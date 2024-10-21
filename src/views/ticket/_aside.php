@@ -3,7 +3,7 @@
 
 
 /* @var $this \yii\web\View */
-/* @var $searchModel \backend\models\CommentsSearch|\backend\models\ProductMainSearch */
+/* @var $searchModel \hesabro\ticket\models\CommentsSearch */
 
 ?>
 

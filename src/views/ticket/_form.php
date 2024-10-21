@@ -1,5 +1,6 @@
 <?php
 
+use hesabro\ticket\models\Comments;
 use kartik\select2\Select2;
 use yii\bootstrap4\ActiveForm;
 use yii\helpers\Html;
@@ -7,12 +8,12 @@ use yii\helpers\Url;
 use yii\widgets\MaskedInput;
 
 /* @var $this yii\web\View */
-/* @var $model common\models\Comments */
-/* @var $comments common\models\Comments[] */
+/* @var $model Comments */
+/* @var $comments Comments[] */
 /* @var $form yii\bootstrap4\ActiveForm */
 
 $url = Url::to([
-	'/ticket/create',
+	'ticket/create',
 	'title' => $title,
 	'class_name' => $class_name,
 	'class_id' => $class_id,
@@ -36,7 +37,7 @@ $url = Url::to([
 				<div class="col-md-4">
 
 					<?= $form->field($model, 'owner')->widget(Select2::class, [
-						'data' => User::userOptions(),
+						'data' => Comments::itemAlias('Owner'),
 						'options' => [
 							'placeholder' => 'کاربران',
 							'dir' => 'rtl',

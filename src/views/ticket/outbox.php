@@ -28,7 +28,7 @@ $doing_count = Comments::countInbox(Comments::STATUS_DOING);
 				</a>
 			</h4>
 			<div>
-				<?= Html::a($t = Yii::t('app', 'New Ticket'), ['/ticket/send'], [
+				<?= Html::a($t = Yii::t('app', 'New Ticket'), ['ticket/send'], [
 					'title' => $t,
 					'class' => 'btn btn-info showModalButton'
 				]) ?>
@@ -71,7 +71,7 @@ $doing_count = Comments::countInbox(Comments::STATUS_DOING);
 				[
 					'attribute' => 'title',
 					'value' => function ($model) {
-						return '<span>' . $model->title . Html::a($model->title, ['/ticket/view', 'id' => $model->id], [
+						return '<span>' . $model->title . Html::a($model->title, ['ticket/view', 'id' => $model->id], [
 							'title' => $model->title,
 							'id' => 'link-to-' . $model->id,
 							'class' => 'showModalButton d-none',

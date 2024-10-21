@@ -1,13 +1,14 @@
 <?php
 
 use hesabro\ticket\models\Comments;
+use hesabro\ticket\models\CommentsSearch;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\Pjax;
 
 /* @var $this yii\web\View */
 /* @var $model Comments */
-/* @var $searchModel backend\models\CommentsSearch */
+/* @var $searchModel CommentsSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
 $controller = Yii::$app->controller->id;
@@ -25,7 +26,7 @@ $canChangeStatus = $model->canChangeStatus()
             <?= $fullDetail ? Html::a(
                 '<i class="fa fa-reply"></i> ' . Yii::t("app", "Answer"),
                 [
-                    '/ticket/send',
+                    'ticket/send',
                     'owner' => $model->creator_id,
                     'parent_id' => $model->id,
                     'title' => 'پاسخ به - ' . $model->title,
@@ -45,7 +46,7 @@ $canChangeStatus = $model->canChangeStatus()
                         'data-reload-pjax-container' => 'mail_box',
                         'data-pjax' => '0',
                         'data-url' => Url::to([
-                            '/ticket/change-status',
+                            'ticket/change-status',
                             'type' => Comments::STATUS_CLOSE,
                             'id' => $model->id,
                         ]),
@@ -67,7 +68,7 @@ $canChangeStatus = $model->canChangeStatus()
                         'data-reload-pjax-container' => 'mail_box',
                         'data-pjax' => '0',
                         'data-url' => Url::to([
-                            '/ticket/change-status',
+                            'ticket/change-status',
                             'type' => Comments::STATUS_DOING,
                             'id' => $model->id,
                         ]),
@@ -89,7 +90,7 @@ $canChangeStatus = $model->canChangeStatus()
                         'data-reload-pjax-container' => 'mail_box',
                         'data-pjax' => '0',
                         'data-url' => Url::to([
-                            '/ticket/change-status',
+                            'ticket/change-status',
                             'type' => Comments::STATUS_ACTIVE,
                             'id' => $model->id,
                         ]),
@@ -108,7 +109,7 @@ $canChangeStatus = $model->canChangeStatus()
                         'aria-label' => Yii::t("app", 'Refer Ticket'),
                         'data-pjax' => '0',
                         'data-url' => Url::to([
-                            '/ticket/refer',
+                            'ticket/refer',
                             'id' => $model->id,
                         ]),
                         'class' => 'btn btn-warning btn-sm',
@@ -131,7 +132,7 @@ $canChangeStatus = $model->canChangeStatus()
             <div class="compose-btn">
                 <?= Html::a(
                     '<i class="fa fa-comments-alt"></i> ' . Yii::t('app', 'History') . ' و ' . Yii::t('app', 'Thread'),
-                    Url::to(['/ticket/thread', 'id' => $model->parent_id && $model->kind === Comments::KIND_THREAD ? $model->parent_id : $model->id]),
+                    Url::to(['ticket/thread', 'id' => $model->parent_id && $model->kind === Comments::KIND_THREAD ? $model->parent_id : $model->id]),
                     [
                         'class' => "btn btn-sm btn-linkedin",
                     ]
@@ -159,7 +160,7 @@ $canChangeStatus = $model->canChangeStatus()
         </div>
         <div class="col-md-12">
             <div class="view-mail text-justify">
-                <?= ($fileUrl = $model->getFileUrl()) ? Html::a('<span class="badge badge-info">دانلود فایل پیوست</span>', $fileUrl, ['data-pjax' => 0]) . '<br>' : '' ?>
+                <?= ($fileUrl = $model->getFileUrl('file')) ? Html::a('<span class="badge badge-info">دانلود فایل پیوست</span>', $fileUrl, ['data-pjax' => 0]) . '<br>' : '' ?>
                 <?= nl2br($model->des) ?>
                 <?= $model->link ? '<hr/>' . Html::a('مشاهده ' . $model->title, str_starts_with($model->link, 'http') ? $model->link : [$model->link, 'id' => $model->class_id]) : '' ?>
             </div>

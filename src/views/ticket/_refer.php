@@ -25,7 +25,7 @@ use yii\widgets\MaskedInput;
             <div class="row">
                 <div class="col-md-12">
                     <?= $form->field($model, 'owner')->widget(Select2::class, [
-                        'data' => User::userOptions(),
+                        'data' => Comments::itemAlias('Owner'),
                         'options' => [
                             'placeholder' => 'کاربران',
                             'dir' => 'rtl',

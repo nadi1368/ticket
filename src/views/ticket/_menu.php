@@ -10,7 +10,7 @@ $doing_count = Comments::countInbox(Comments::STATUS_DOING);
 ?>
 <?php if ($action != 'view') : ?>
 	<div class="incard-body p-3">
-		<?= Html::a('ارسال', ['/ticket/send'], [
+		<?= Html::a('ارسال', ['ticket/send'], [
 			'title' => 'ارسال پیام',
 			'class' => 'btn btn-compose showModalButton',
 		]);

@@ -5,15 +5,18 @@ use yii\db\Migration;
 
 class m241020_100658_create_table_tickets extends Migration
 {
+    private $module;
+
     public function init(): void
     {
-        $this->db = TicketModule::getInstance()->db;
+        $this->module = Yii::$app->getModule('tickets');
+        $this->db = $this->module->db;
         parent::init();
     }
 
     public function safeUp()
     {
-        $hasSlaves = TicketModule::getInstance()->hasSlaves;
+        $hasSlaves = $this->module->hasSlaves;
 
         $this->createTable(
             '{{%tickets}}',
@@ -42,12 +45,12 @@ class m241020_100658_create_table_tickets extends Migration
 
         if ($hasSlaves){
             $this->addColumn('{{%tickets}}', 'slave_id', $this->integer()->unsigned()->notNull());
-            $this->createIndex('slave_id_index', '{{%comments_view}}', ['slave_id']);
+            $this->createIndex('slave_id_index', '{{%tickets}}', ['slave_id']);
         }
 
-        $this->createIndex('creator_id', '{{%comments}}', ['creator_id']);
-        $this->createIndex('update_id', '{{%comments}}', ['update_id']);
-        $this->createIndex('parent_id', '{{%comments}}', ['parent_id']);
+        $this->createIndex('creator_id', '{{%tickets}}', ['creator_id']);
+        $this->createIndex('update_id', '{{%tickets}}', ['update_id']);
+        $this->createIndex('parent_id', '{{%tickets}}', ['parent_id']);
     }
 
     public function safeDown()

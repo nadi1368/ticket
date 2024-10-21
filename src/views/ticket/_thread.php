@@ -34,7 +34,7 @@ $rootTicket = current(array_filter($messages, fn(Comments $comment) => !$comment
 
     <?php if ($thread): ?>
         <div class="px-3 py-4">
-            <?= $this->render('@backend/views/ticket/_overview', ['model' => $thread]) ?>
+            <?= $this->render('@hesabro/ticket/views/ticket/_overview', ['model' => $thread]) ?>
         </div>
         <hr class="m-0">
     <?php endif; ?>
@@ -87,7 +87,7 @@ $rootTicket = current(array_filter($messages, fn(Comments $comment) => !$comment
                                     <?php endif; ?>
                                     <p class="font-normal"><?= nl2br($message->des) ?></p>
 
-                                    <?= ($fileUrl = $message->getFileUrl()) ? Html::a('<span class="badge badge-info">دانلود فایل پیوست</span>', $fileUrl, ['data-pjax' => 0]) . '<br>' : '' ?>
+                                    <?= ($fileUrl = $message->getFileUrl('file')) ? Html::a('<span class="badge badge-info">دانلود فایل پیوست</span>', $fileUrl, ['data-pjax' => 0]) . '<br>' : '' ?>
 
                                     <p class="m-0 d-flex justify-content-end">
                                         <small><?= Yii::$app->jdate->date('H:i Y/m/d', $message->created) ?></small>

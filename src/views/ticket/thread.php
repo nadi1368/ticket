@@ -27,7 +27,7 @@ $this->registerCss($css);
     <div class="flex-grow-1 row p-5">
 
         <div class="col-md-8">
-            <?= $this->renderFile('@backend/views/ticket/_thread.php', [
+            <?= $this->renderFile('@hesabro/ticket/views/ticket/_thread.php', [
                 'thread' => $thread
             ]) ?>
         </div>
@@ -41,7 +41,7 @@ $this->registerCss($css);
                         <div class="border-bottom py-2 <?= $ticket->id == Yii::$app->request->get('id', '') ? 'bg-light' : '' ?>">
                             <?= Html::a(
                                 '<span><strong>' . $ticket->title . '</strong><br/><small class="line-clamp-1">' . $ticket->latestMessage?->des . '</small></span>',
-                                Url::to(['/ticket/thread', 'id' => $ticket->id]),
+                                Url::to(['ticket/thread', 'id' => $ticket->id]),
                                 ['class' => 'd-block px-3', 'data-pjax' => 0]
                             ) ?>
                         </div>

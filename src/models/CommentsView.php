@@ -2,6 +2,7 @@
 
 namespace hesabro\ticket\models;
 
+use hesabro\errorlog\behaviors\TraceBehavior;
 use hesabro\ticket\TicketModule;
 use Yii;
 
@@ -40,7 +41,7 @@ class CommentsView extends \yii\db\ActiveRecord
             [['user_id', 'comment_id'], 'required'],
             [['user_id', 'comment_id', 'viewed', 'insert_date'], 'integer'],
             [['user_id', 'comment_id'], 'unique', 'targetAttribute' => ['user_id', 'comment_id']],
-            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['user_id' => 'id']],
+            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => Yii::$app->user->identityClass, 'targetAttribute' => ['user_id' => 'id']],
             [['comment_id'], 'exist', 'skipOnError' => true, 'targetClass' => Comments::class, 'targetAttribute' => ['comment_id' => 'id']],
         ];
     }
@@ -62,7 +63,8 @@ class CommentsView extends \yii\db\ActiveRecord
      */
     public function getUser()
     {
-        return $this->hasOne(User::class, ['id' => 'user_id']);
+        $userModelClass = Yii::$app->user->identityClass;
+        return $this->hasOne($userModelClass, ['id' => 'user_id']);
     }
 
     /**

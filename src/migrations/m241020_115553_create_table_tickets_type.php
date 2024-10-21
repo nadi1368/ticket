@@ -5,15 +5,18 @@ use yii\db\Migration;
 
 class m241020_115553_create_table_tickets_type extends Migration
 {
+    private $module;
+
     public function init(): void
     {
-        $this->db = TicketModule::getInstance()->db;
+        $this->module = Yii::$app->getModule('tickets');
+        $this->db = $this->module->db;
         parent::init();
     }
+
     public function safeUp()
     {
-        $hasSlaves = TicketModule::getInstance()->hasSlaves;
-
+        $hasSlaves = $this->module->hasSlaves;
         $this->createTable(
             '{{%tickets_type}}',
             [

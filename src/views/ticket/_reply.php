@@ -16,7 +16,7 @@ use yii\helpers\Url;
 <div>
     <?php $form = ActiveForm::begin([
         'id' => 'reply-form',
-        'action' => Url::to(['/ticket/reply', 'id' => $thread->id ])
+        'action' => Url::to(['ticket/reply', 'id' => $thread->id ])
     ]); ?>
     <input type="file" id="comments-file" class="d-none" name="<?= $model->formName() ?>[file]" aria-invalid="false" value />
     <div class="d-flex align-items-center justify-content-start">
@@ -41,7 +41,7 @@ use yii\helpers\Url;
 </div>
 
 <?php
-$pjaxUrl = Url::to(['/ticket/thread', 'id' => $thread->id]);
+$pjaxUrl = Url::to(['ticket/thread', 'id' => $thread->id]);
 $script = <<< JS
 $(document).ready(function () {
     const scrollToEnd = () => {

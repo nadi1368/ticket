@@ -2,6 +2,7 @@
 
 namespace hesabro\ticket;
 
+use Closure;
 use hesabro\ticket\models\Comments;
 use Yii;
 use yii\base\InvalidConfigException;
@@ -46,6 +47,7 @@ class TicketModule extends \yii\base\Module
     public ?string $commentsViewMasterClass = null;
     public ?array $notificationBehavior = null;
     public ?bool $hasSlaves = false;
+    public ?Closure $notifyToSupporter = null;
 
 	public function init()
 	{
@@ -53,13 +55,13 @@ class TicketModule extends \yii\base\Module
             throw new InvalidConfigException('User component must be configured');
         }
 
-        $userModel = Yii::$app->user->identity;
-
 		parent::init();
 	}
 
     public function notifySupporter(Comments $comment): void
     {
-        // you can overwrite this function
+        if ($this->notifyToSupporter){
+            ($this->notifyToSupporter)($comment);
+        }
     }
 }
