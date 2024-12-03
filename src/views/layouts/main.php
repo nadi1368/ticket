@@ -13,12 +13,13 @@ use common\widgets\dateRangePicker\RangePickerAsset;
 use common\widgets\FloatingMenuWidget;
 use common\widgets\OnboardingChecklistWidget;
 use common\widgets\SideTutorialsWidget;
+use hesabro\ticket\assets\AmpleAssets;
 use yii\bootstrap\Modal;
 use yii\helpers\Html;
 use yii\widgets\Breadcrumbs;
 
 RangePickerAsset::register($this);
-\backend\assets\AmpleAssets::register($this);
+AmpleAssets::register($this);
 
 ?>
 <?php $this->beginPage() ?>
