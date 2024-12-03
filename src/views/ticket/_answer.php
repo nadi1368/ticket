@@ -1,10 +1,10 @@
 <?php
 
-use hesabro\ticket\models\Comments;
+use hesabro\ticket\models\Tickets;
 use yii\helpers\Html;
 
 /* @var $this yii\web\View */
-/* @var $children Comments[] */
+/* @var $children Tickets[] */
 ?>
 <div class="row">
     <?php foreach ($children as $model): ?>

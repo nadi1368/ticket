@@ -1,14 +1,14 @@
 <?php
 
-use hesabro\ticket\models\Comments;
-use hesabro\ticket\models\CommentsSearch;
+use hesabro\ticket\models\Tickets;
+use hesabro\ticket\models\TicketsSearch;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\Pjax;
 
 /* @var $this yii\web\View */
-/* @var $model Comments */
-/* @var $searchModel CommentsSearch */
+/* @var $model Tickets */
+/* @var $searchModel TicketsSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
 $controller = Yii::$app->controller->id;
@@ -36,7 +36,7 @@ $canChangeStatus = $model->canChangeStatus()
                     'class' => 'btn btn-sm btn-primary showModalButton'
                 ]
             ) : '' ?>
-            <?= $canChangeStatus && ($model->status == Comments::STATUS_ACTIVE || $model->status == Comments::STATUS_DOING) ?
+            <?= $canChangeStatus && ($model->status == Tickets::STATUS_ACTIVE || $model->status == Tickets::STATUS_DOING) ?
                 Html::a(
                     '<i class="fa fa-times"></i> ' . Yii::t("app", "Close Ticket"),
                     'javascript:void(0)',
@@ -47,7 +47,7 @@ $canChangeStatus = $model->canChangeStatus()
                         'data-pjax' => '0',
                         'data-url' => Url::to([
                             'ticket/change-status',
-                            'type' => Comments::STATUS_CLOSE,
+                            'type' => Tickets::STATUS_CLOSE,
                             'id' => $model->id,
                         ]),
                         'class' => "btn btn-sm btn-danger p-jax-btn",
@@ -58,7 +58,7 @@ $canChangeStatus = $model->canChangeStatus()
                     ]
                 ) : '';
             ?>
-            <?= $canChangeStatus && $model->status == Comments::STATUS_ACTIVE ?
+            <?= $canChangeStatus && $model->status == Tickets::STATUS_ACTIVE ?
                 Html::a(
                     '<i class="fa fa-thumbs-up"></i> ' . Yii::t("app", "Change To Doing"),
                     'javascript:void(0)',
@@ -69,7 +69,7 @@ $canChangeStatus = $model->canChangeStatus()
                         'data-pjax' => '0',
                         'data-url' => Url::to([
                             'ticket/change-status',
-                            'type' => Comments::STATUS_DOING,
+                            'type' => Tickets::STATUS_DOING,
                             'id' => $model->id,
                         ]),
                         'class' => "btn btn-sm btn-info p-jax-btn",
@@ -80,7 +80,7 @@ $canChangeStatus = $model->canChangeStatus()
                     ]
                 ) : '';
             ?>
-            <?= $canChangeStatus && $model->status == Comments::STATUS_CLOSE ?
+            <?= $canChangeStatus && $model->status == Tickets::STATUS_CLOSE ?
                 Html::a(
                     '<i class="fa fa-check"></i> ' . Yii::t("app", "Active"),
                     'javascript:void(0)',
@@ -91,7 +91,7 @@ $canChangeStatus = $model->canChangeStatus()
                         'data-pjax' => '0',
                         'data-url' => Url::to([
                             'ticket/change-status',
-                            'type' => Comments::STATUS_ACTIVE,
+                            'type' => Tickets::STATUS_ACTIVE,
                             'id' => $model->id,
                         ]),
                         'class' => "btn btn-sm btn-success p-jax-btn",
@@ -102,7 +102,7 @@ $canChangeStatus = $model->canChangeStatus()
                     ]
                 ) : '';
             ?>
-            <?= $canChangeStatus && ($model->status == Comments::STATUS_ACTIVE || $model->status == Comments::STATUS_DOING) ?
+            <?= $canChangeStatus && ($model->status == Tickets::STATUS_ACTIVE || $model->status == Tickets::STATUS_DOING) ?
                 Html::a('<i class="fas fa-directions"></i> ' . Yii::t("app", 'Refer'),
                     'javascript:void(0)', [
                         'title' => Yii::t("app", 'Refer Ticket'),
@@ -132,7 +132,7 @@ $canChangeStatus = $model->canChangeStatus()
             <div class="compose-btn">
                 <?= Html::a(
                     '<i class="fa fa-comments-alt"></i> ' . Yii::t('app', 'History') . ' و ' . Yii::t('app', 'Thread'),
-                    Url::to(['ticket/thread', 'id' => $model->parent_id && $model->kind === Comments::KIND_THREAD ? $model->parent_id : $model->id]),
+                    Url::to(['ticket/thread', 'id' => $model->parent_id && $model->kind === Tickets::KIND_THREAD ? $model->parent_id : $model->id]),
                     [
                         'class' => "btn btn-sm btn-linkedin",
                     ]
@@ -145,12 +145,15 @@ $canChangeStatus = $model->canChangeStatus()
             <small class="badge-inverse px-2 py-1 d-inline-flex"><?= $model->creator_id === 0 ? Yii::t('app', 'System') : $model->creator?->fullName ?></small>
         </h4>
     </div>
-    <div class="col-md-12">
-        <hr />
+    <div class='col-md-6 mt-4'>
+        <h4 class='mb-0'>
+            <?= Yii::t('tickets', 'Department') . ':' ?>
+            <?= $model->department?->title ?>
+        </h4>
     </div>
-    <div class="col-md-12">
+    <div class="col-md-6 mt-4">
         <h4 class="mb-0">
-            <?= Yii::t("app", "Receivers") . ':' ?>
+            <?= Yii::t("tickets", "Receivers") . ':' ?>
             <?= $model->getOwnerList() ?>
         </h4>
     </div>

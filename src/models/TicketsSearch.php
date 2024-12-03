@@ -10,7 +10,7 @@ use yii\data\ActiveDataProvider;
 /**
  * CommentsSearch represents the model behind the search form of `common\models\Comments`.
  */
-class CommentsSearch extends Comments
+class TicketsSearch extends Tickets
 {
     public $fromDate, $toDate;
 
@@ -20,7 +20,7 @@ class CommentsSearch extends Comments
     public function rules()
     {
         return [
-            [['id', 'creator_id', 'update_id', 'class_id', 'css_class', 'status', 'created', 'changed', 'parent_id', 'unread'], 'integer'],
+            [['id', 'creator_id', 'update_id', 'class_id', 'priority', 'status', 'created', 'changed', 'parent_id', 'unread'], 'integer'],
             [['owner', 'class_name', 'des', 'due_date', 'fromDate', 'toDate'], 'safe'],
             [['fromDate'], DateValidator::class, 'when' => function ($model) {
                 return !empty($this->fromDate);
@@ -28,7 +28,7 @@ class CommentsSearch extends Comments
             [['toDate'], DateValidator::class, 'when' => function ($model) {
                 return !empty($this->toDate);
             }],
-            ['status', 'default', 'value' => Comments::STATUS_ACTIVE],
+            ['status', 'default', 'value' => Tickets::STATUS_ACTIVE],
             ['status', 'default', 'value' => 1],
         ];
     }
@@ -63,12 +63,10 @@ class CommentsSearch extends Comments
         if ($baseQuery) {
             $query = $baseQuery;
         } else if ($outbox) {
-            $query = Comments::find()->outbox();
-        } else if ($master) {
-            $query = CommentsMaster::find()->inboxMaster();
+            $query = Tickets::find()->outbox();
         } else {
-            $query = Comments::find()->inbox();
-            (((int) $this->status) === Comments::STATUS_ACTIVE) && $query->excludeViewedThreads();
+            $query = Tickets::find()->inbox();
+            (((int) $this->status) === Tickets::STATUS_ACTIVE) && $query->excludeViewedThreads();
         }
 
         // add conditions that should always apply here
@@ -87,26 +85,22 @@ class CommentsSearch extends Comments
 
         // grid filtering conditions
         $query->andFilterWhere([
-            'id' => $this->id,
-            'creator_id' => $this->creator_id,
-            'update_id' => $this->update_id,
-            'class_id' => $this->class_id,
-            'css_class' => $this->css_class,
-            'status' => $this->status,
-            'created' => $this->created,
-            'changed' => $this->changed,
+            Tickets::tableName() . '.id' => $this->id,
+            Tickets::tableName() . '.creator_id' => $this->creator_id,
+            Tickets::tableName() . '.update_id' => $this->update_id,
+            Tickets::tableName() . '.class_id' => $this->class_id,
+            Tickets::tableName() . '.priority' => $this->priority,
+            Tickets::tableName() . '.status' => $this->status,
+            Tickets::tableName() . '.created' => $this->created,
+            Tickets::tableName() . '.changed' => $this->changed,
         ]);
 
-        $query->andFilterWhere(['like', 'class_name', $this->class_name])
-            ->andFilterWhere(['like', 'des', $this->des])
-            ->andFilterWhere(['like', 'due_date', $this->due_date]);
+        $query->andFilterWhere(['like', Tickets::tableName() . '.class_name', $this->class_name])
+            ->andFilterWhere(['like', Tickets::tableName() . '.des', $this->des])
+            ->andFilterWhere(['like', Tickets::tableName() . '.due_date', $this->due_date]);
 
         if ($this->unread) {
-            if ($master) {
-                $query->unreadMaster();
-            } else {
                 $query->unread();
-            }
         }
 
         if ($this->owner) {
@@ -122,7 +116,7 @@ class CommentsSearch extends Comments
 
     public function searchApi($params)
     {
-        $query = Comments::find()->andWhere(['creator_id' => Yii::$app->user->id]);
+        $query = Tickets::find()->andWhere(['creator_id' => Yii::$app->user->id]);
 
         // add conditions that should always apply here
 
@@ -143,7 +137,7 @@ class CommentsSearch extends Comments
         $query->andFilterWhere([
             'id' => $this->id,
             'class_id' => $this->class_id,
-            'css_class' => $this->css_class,
+            'priority' => $this->priority,
             'status' => $this->status,
             'created' => $this->created,
             'changed' => $this->changed,
@@ -165,12 +159,12 @@ class CommentsSearch extends Comments
 
     public function searchMyDirectTickets($params = [])
     {
-        $query = Comments::find()
+        $query = Tickets::find()
             ->isNotSystem()
             ->isParent()
             ->my()
             ->andWhere([
-                'kind' => [Comments::KIND_TICKET, Comments::KIND_REFER]
+                Tickets::tableName() . '.kind' => [Tickets::KIND_TICKET, Tickets::KIND_REFER]
             ]);
 
         $dataProvider = new ActiveDataProvider([
@@ -185,11 +179,11 @@ class CommentsSearch extends Comments
         }
 
         $query->andFilterWhere([
-            'id' => $this->id,
-            'creator_id' => $this->creator_id,
-            'class_id' => $this->class_id,
-            'css_class' => $this->css_class,
-            'status' => $this->status
+            Tickets::tableName() . '.id' => $this->id,
+            Tickets::tableName() . '.creator_id' => $this->creator_id,
+            Tickets::tableName() . '.class_id' => $this->class_id,
+            Tickets::tableName() . '.priority' => $this->priority,
+            Tickets::tableName() . '.status' => $this->status
         ]);
 
         return $dataProvider;

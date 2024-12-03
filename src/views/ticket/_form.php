@@ -1,6 +1,6 @@
 <?php
 
-use hesabro\ticket\models\Comments;
+use hesabro\ticket\models\Tickets;
 use kartik\select2\Select2;
 use yii\bootstrap4\ActiveForm;
 use yii\helpers\Html;
@@ -8,8 +8,8 @@ use yii\helpers\Url;
 use yii\widgets\MaskedInput;
 
 /* @var $this yii\web\View */
-/* @var $model Comments */
-/* @var $comments Comments[] */
+/* @var $model \hesabro\ticket\models\Tickets */
+/* @var $comments \hesabro\ticket\models\Tickets[] */
 /* @var $form yii\bootstrap4\ActiveForm */
 
 $url = Url::to([
@@ -37,7 +37,7 @@ $url = Url::to([
 				<div class="col-md-4">
 
 					<?= $form->field($model, 'owner')->widget(Select2::class, [
-						'data' => Comments::itemAlias('Owner'),
+						'data' => Tickets::itemAlias('Owner'),
 						'options' => [
 							'placeholder' => 'کاربران',
 							'dir' => 'rtl',
@@ -46,7 +46,7 @@ $url = Url::to([
 					]); ?>
 				</div>
 				<div class="col-md-4">
-					<?= $form->field($model, 'css_class')->dropDownList(Comments::itemAlias('Type'), ['prompt' => Yii::t('app', 'Select...')]) ?>
+					<?= $form->field($model, 'priority')->dropDownList(Tickets::itemAlias('Priority'), ['prompt' => Yii::t('app', 'Select...')]) ?>
 				</div>
 
 				<div class="col-md-4">

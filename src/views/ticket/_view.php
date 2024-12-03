@@ -1,10 +1,10 @@
 <?php
 
-use hesabro\ticket\models\Comments;
+use hesabro\ticket\models\Tickets;
 use yii\helpers\Html;
 
 /* @var $this yii\web\View */
-/* @var $comments Comments[] */
+/* @var $comments Tickets[] */
 /* @var $form yii\bootstrap4\ActiveForm */
 ?>
 <div class="card">
@@ -12,9 +12,9 @@ use yii\helpers\Html;
         <table class="table table-bordered">
             <tbody>
             <?php foreach ($comments as $comment):
-				/** @var Comments $comment */
+				/** @var Tickets $comment */
 				?>
-                <?php $css_class = Comments::itemAlias('CssClass', $comment->css_class) ?>
+                <?php $css_class = Tickets::itemAlias('PriorityClass', $comment->priority) ?>
                 <tr class="<?= $css_class ?>">
                     <td width="80%" class="<?= $css_class ?>"><?= $comment->des . (($fileUrl = $comment->getFileUrl('file')) ? Html::a('<span class="badge badge-info">دانلود فایل پیوست</span>', $fileUrl, ['class' => 'pull-left']) : '') ?> </td>
                     <td class="<?= $css_class ?>">

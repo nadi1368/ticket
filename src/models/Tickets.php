@@ -10,7 +10,6 @@ use hesabro\helpers\validators\DateValidator;
 use hesabro\ticket\TicketModule;
 use mamadali\S3Storage\behaviors\StorageUploadBehavior;
 use mamadali\S3Storage\components\S3Storage;
-use managerBranch\models\CommentsViewMaster;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
@@ -25,6 +24,7 @@ use yii\web\UploadedFile;
  *
  * @property int $id
  * @property int $parent_id
+ * @property int $department_id
  * @property string $creator_id
  * @property string $update_id
  * @property int $type عمومی یا مخصول یک کاربر
@@ -35,7 +35,7 @@ use yii\web\UploadedFile;
  * @property string $link
  * @property string $title
  * @property string $des
- * @property int $css_class
+ * @property int $priority
  * @property int $status
  * @property string $due_date
  * @property string $created
@@ -43,7 +43,7 @@ use yii\web\UploadedFile;
  * @property string $file_name
  * @property string $additional_data
  *
- * @property CommentsView[] $commentsViews
+ * @property TicketsView[] $ticketsViews
  * @property User[] $users
  * @property User[] $owners
  * @property User $creator
@@ -51,23 +51,26 @@ use yii\web\UploadedFile;
  * @property string $fullTitle
  * @property string $htmlLink
  * @property string $sender
+ * @property TicketsDepartments $department
+ * @property User $assignedTo
+ * @property self $parent
  */
-class Comments extends \yii\db\ActiveRecord
+class Tickets extends \yii\db\ActiveRecord
 {
     const STATUS_DELETED = 0;
     const STATUS_ACTIVE = 1;
     const STATUS_DOING = 2;
     const STATUS_CLOSE = 3;
 
-    const TYPE_DANGER = 1;
-    const TYPE_WARNING = 2;
-    const TYPE_SUCCESS = 3;
-    const TYPE_INFO = 4;
+    const PRIORITY_ESSENTIAL = 1;
+    const PRIORITY_HIGH = 2;
+    const PRIORITY_MEDIUM = 3;
+    const PRIORITY_LOW = 4;
 
     const TYPE_PUBLIC = 0;
     const TYPE_PRIVATE = 1;
-
-    const TYPE_MASTER = 2;
+    const TYPE_DEPARTMENT = 2;
+    const TYPE_MASTER = 3;
 
     const KIND_TICKET = 1;
 
@@ -81,12 +84,9 @@ class Comments extends \yii\db\ActiveRecord
     const SCENARIO_ANSWER = 'answer';
     const SCENARIO_AUTO = 'auto';
     const SCENARIO_REPORT_BUG = 'report_bug';
-    const SCENARIO_MASTER = 'master-ticket';
+    const SCENARIO_MASTER = 'master';
 
     const SCENARIO_REFER = 'refer';
-
-    const MASTER_TASK_TYPE_FINANCE = 1;
-    const MASTER_TASK_TYPE_TECHNICAL = 2;
 
     public $error_msg;
     public $owner;
@@ -113,6 +113,10 @@ class Comments extends \yii\db\ActiveRecord
     public mixed $send_email_at = null;
 
     public mixed $send_sms_at = null;
+    public $assigned_to;
+    public $user_fullName;
+    public $user_number;
+    public $module_id;
 
     /**
      * {@inheritdoc}
@@ -134,7 +138,7 @@ class Comments extends \yii\db\ActiveRecord
                 'class' => StorageUploadBehavior::class,
                 'attributes' => ['file'],
                 'accessFile' => S3Storage::ACCESS_PRIVATE,
-                'scenarios' => [self::SCENARIO_CREATE, self::SCENARIO_MASTER, self::SCENARIO_CREATE_APP, self::SCENARIO_SEND],
+                'scenarios' => [self::SCENARIO_CREATE, self::SCENARIO_CREATE_APP, self::SCENARIO_SEND],
                 'path' => 'comments/{id}',
                 'sharedWith' => function (self $model) {
                     $clientComponentClass = TicketModule::getInstance()->clientComponentClass;
@@ -156,14 +160,18 @@ class Comments extends \yii\db\ActiveRecord
             [
                 'class' => JsonAdditional::class,
                 'ownerClassName' => self::class,
+                'notSaveNull' => true,
                 'fieldAdditional' => 'additional_data',
                 'AdditionalDataProperty' => [
                     'master_task_type_id' => 'NullInteger',
                     'referrer_url' => 'String',
                     'is_duty' => 'Boolean',
-                    'direct_parent_id' => 'NullInteger'
+                    'direct_parent_id' => 'NullInteger',
+                    'assigned_to' => 'NullInteger',
+                    'user_fullName' => 'NullString',
+                    'user_number' => 'NullString',
+                    'module_id' => 'NullInteger',
                 ],
-
             ],
         ];
 
@@ -193,14 +201,12 @@ class Comments extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['des', 'css_class', 'title'], 'required', 'on' => [self::SCENARIO_CREATE, self::SCENARIO_SEND]],
-            [['des', 'master_task_type_id', 'css_class', 'title'], 'required', 'on' => [self::SCENARIO_MASTER]],
-            [['des', 'css_class', 'class_id', 'due_date'], 'required', 'on' => [self::SCENARIO_CREATE_APP]],
-            [['des', 'css_class'], 'required', 'on' => [self::SCENARIO_REPORT_BUG]],
-            [['owner'], 'required', 'on' => [self::SCENARIO_SEND, self::SCENARIO_REFER]],
-            [['owner', 'type_task'], 'required', 'on' => [self::SCENARIO_AUTO]],
+            [['des', 'priority', 'title', 'department_id'], 'required', 'on' => [self::SCENARIO_CREATE, self::SCENARIO_SEND]],
+            [['department_id'], 'required', 'on' => [self::SCENARIO_REFER]],
+            [['des', 'priority', 'class_id', 'due_date'], 'required', 'on' => [self::SCENARIO_CREATE_APP]],
+            [['des', 'priority'], 'required', 'on' => [self::SCENARIO_REPORT_BUG]],
             [[
-                'parent_id', 'type', 'creator_id', 'update_id', 'class_id', 'css_class', 'status', 'created', 'changed',
+                'parent_id', 'type', 'creator_id', 'update_id', 'class_id', 'priority', 'status', 'created', 'changed',
                 'master_task_type_id', 'send_sms', 'send_email', 'direct_parent_id'
             ], 'integer'],
             [['des', 'file_name'], 'string'],
@@ -234,7 +240,7 @@ class Comments extends \yii\db\ActiveRecord
                     'application/zip'
                 ],
                 'maxSize' => 2 * 1024 * 1024],
-            [['type_task'], 'exist', 'skipOnError' => true, 'targetClass' => CommentsType::class, 'targetAttribute' => ['type_task' => 'id']],
+            //[['type_task'], 'exist', 'skipOnError' => true, 'targetClass' => CommentsType::class, 'targetAttribute' => ['type_task' => 'id']],
             [['send_email_at', 'send_sms_at'], 'number', 'enableClientValidation' => false],
             [['send_email_at', 'send_sms_at'], 'validateTimeAfter'],
         ];
@@ -246,7 +252,7 @@ class Comments extends \yii\db\ActiveRecord
             $this->addError($attribute, 'امکان ارجاع این تیکت وجود ندارد.');
         }
 
-        $parent = $this->direct_parent_id ? Comments::findOne($this->direct_parent_id) : null;
+        $parent = $this->direct_parent_id ? self::findOne($this->direct_parent_id) : null;
         $parentMembers = array_map(fn($user) => (int) $user->id, $parent?->users ?: []);
         $owner = array_map(fn(int $item) => (int) $item, $this->owner ?: []);
 
@@ -273,14 +279,13 @@ class Comments extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_CREATE] = ['des', 'css_class', 'title', 'owner', 'parent_id', 'creator_id', 'update_id', 'class_id', 'status', 'created', 'changed', 'due_date', 'class_name', 'link', 'file'];
-        $scenarios[self::SCENARIO_MASTER] = ['des', 'title', 'css_class', 'owner', 'parent_id', 'creator_id', 'update_id', 'due_date', 'link', 'file', 'master_task_type_id'];
-        $scenarios[self::SCENARIO_CREATE_APP] = ['des', 'css_class', 'title', 'owner', 'parent_id', 'creator_id', 'update_id', 'class_id', 'status', 'due_date', 'class_name', 'link', 'file'];
-        $scenarios[self::SCENARIO_SEND] = ['des', 'css_class', 'title', 'owner', 'parent_id', 'creator_id', 'update_id', 'class_id', 'status', 'created', 'changed', 'due_date', 'class_name', 'link', 'file', 'send_sms', 'send_email', 'send_sms_at', 'send_email_at'];
-        $scenarios[self::SCENARIO_AUTO] = ['des', 'css_class', 'title', 'owner', 'parent_id', 'creator_id', 'update_id', 'class_id', 'status', 'created', 'changed', 'due_date', 'class_name', 'link', 'send_sms', 'type_task'];
-        $scenarios[self::SCENARIO_ANSWER] = ['des', 'css_class', 'title', 'owner', 'parent_id', 'creator_id', 'update_id', 'class_id', 'status', 'created', 'changed', 'due_date', 'class_name', 'link', 'send_sms', 'type_task', 'send_sms', 'send_email', 'send_sms_at', 'send_email_at'];
-        $scenarios[self::SCENARIO_REPORT_BUG] = ['des', 'css_class'];
-        $scenarios[self::SCENARIO_REFER] = ['des', 'owner', 'send_sms', 'send_email', 'send_sms_at', 'send_email_at'];
+        $scenarios[self::SCENARIO_CREATE] = ['des', 'priority', 'title', 'owner', 'class_id', 'due_date', 'class_name', 'link', 'file'];
+        $scenarios[self::SCENARIO_CREATE_APP] = ['des', 'priority', 'title', 'owner', 'parent_id', 'class_id', 'due_date', 'class_name', 'link', 'file'];
+        $scenarios[self::SCENARIO_SEND] = ['department_id', 'des', 'priority', 'title', 'owner', 'parent_id', 'class_id', 'due_date', 'class_name', 'link', 'file', 'send_sms', 'send_email', 'send_sms_at', 'send_email_at'];
+        $scenarios[self::SCENARIO_AUTO] = ['des', 'priority', 'title', 'owner', 'parent_id', 'class_id', 'due_date', 'class_name', 'link', 'send_sms', 'type_task'];
+        $scenarios[self::SCENARIO_ANSWER] = ['des', 'priority', 'title', 'owner', 'parent_id', 'class_id', 'due_date', 'class_name', 'link', 'send_sms', 'type_task', 'send_sms', 'send_email', 'send_sms_at', 'send_email_at'];
+        $scenarios[self::SCENARIO_REPORT_BUG] = ['des', 'priority'];
+        $scenarios[self::SCENARIO_REFER] = ['department_id', 'des', 'owner', 'send_sms', 'send_email', 'send_sms_at', 'send_email_at'];
 
         return $scenarios;
     }
@@ -291,27 +296,27 @@ class Comments extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', 'ID'),
-            'creator_id' => Yii::t('app', 'Creator ID'),
-            'update_id' => Yii::t('app', 'Update ID'),
-            'owner' => Yii::t('app', 'Receivers'),
-            'type_task' => Yii::t('app', 'Type') . ' ' . Yii::t('app', 'Task'),
-            'class_name' => Yii::t('app', 'Related To'),
-            'class_id' => Yii::t('app', 'Class ID'),
-            'title' => Yii::t('app', 'Title'),
-            'des' => Yii::t('app', 'Ticket Description'),
-            'css_class' => Yii::t('app', 'Priority'),
-            'send_sms' => Yii::t('app', 'Send Sms'),
-            'send_email' => Yii::t('app', 'Send Email'),
-            'status' => Yii::t('app', 'Status'),
-            'due_date' => Yii::t('app', 'Due Done'),
-            'created' => Yii::t('app', 'Created'),
-            'changed' => Yii::t('app', 'Changed'),
-            'file' => Yii::t('app', 'Attach File'),
-            'master_task_type_id' => Yii::t('app', 'بخش مربوطه'),
-            'is_duty' => Yii::t('app', 'Duty'),
-            'send_email_at' => Yii::t('app', 'Send Email Date'),
-            'send_sms_at' => Yii::t('app', 'Send Sms Date'),
+            'id' => Yii::t('tickets', 'ID'),
+            'creator_id' => Yii::t('tickets', 'Creator ID'),
+            'update_id' => Yii::t('tickets', 'Update ID'),
+            'owner' => Yii::t('tickets', 'Receivers'),
+            'type_task' => Yii::t('tickets', 'Type') . ' ' . Yii::t('tickets', 'Task'),
+            'class_name' => Yii::t('tickets', 'Related To'),
+            'class_id' => Yii::t('tickets', 'Class ID'),
+            'title' => Yii::t('tickets', 'Title'),
+            'des' => Yii::t('tickets', 'Ticket Description'),
+            'priority' => Yii::t('tickets', 'Priority'),
+            'send_sms' => Yii::t('tickets', 'Send Sms'),
+            'send_email' => Yii::t('tickets', 'Send Email'),
+            'status' => Yii::t('tickets', 'Status'),
+            'due_date' => Yii::t('tickets', 'Due Done'),
+            'created' => Yii::t('tickets', 'Created'),
+            'changed' => Yii::t('tickets', 'Changed'),
+            'file' => Yii::t('tickets', 'Attach File'),
+            'is_duty' => Yii::t('tickets', 'Duty'),
+            'send_email_at' => Yii::t('tickets', 'Send Email Date'),
+            'send_sms_at' => Yii::t('tickets', 'Send Sms Date'),
+            'department_id' => Yii::t('tickets', 'Department'),
         ];
     }
 
@@ -320,7 +325,7 @@ class Comments extends \yii\db\ActiveRecord
      */
     public function getCommentsViews()
     {
-        return $this->hasMany(CommentsView::class, ['comment_id' => 'id']);
+        return $this->hasMany(TicketsView::class, ['comment_id' => 'id']);
     }
 
     /**
@@ -349,6 +354,22 @@ class Comments extends \yii\db\ActiveRecord
         return $this->hasOne(CommentsType::class, ['id' => 'type_task']);
     }
 
+    public function getDepartment()
+    {
+        return $this->hasOne(TicketsDepartments::class, ['id' => 'department_id']);
+    }
+
+    public function getAssignedTo()
+    {
+        $userModelClass = Yii::$app->user->identityClass;
+        return $this->hasOne($userModelClass, ['id' => 'assigned_to']);
+    }
+
+    public function getParent()
+    {
+        return $this->hasOne(self::class, ['id' => 'parent_id']);
+    }
+
     /**
      * @return \yii\db\ActiveQuery
      */
@@ -361,6 +382,14 @@ class Comments extends \yii\db\ActiveRecord
                 $modelClass->primaryKey()[0] => 'class_id'
             ]
         );
+    }
+
+    public function getCreatorFullName()
+    {
+        if($this->type == self::TYPE_MASTER){
+            return $this->user_fullName;
+        }
+        return $this->creator->fullName;
     }
 
     /**
@@ -378,7 +407,7 @@ class Comments extends \yii\db\ActiveRecord
         if ($type == 'Owner') {
             $userClass = Yii::$app->user->identityClass;
             $users = (TicketModule::getInstance()->authAssignmentClass)::find()->select('user_id')->andWhere(['IN', 'item_name', (TicketModule::getInstance()->authItemChildClass)::find()->select('parent')->andWhere(['child' => TicketModule::getInstance()->getCommentsPermission])]);
-            $user = $userClass::find()->andWhere(['IN', 'id', $users])->andWhere(['!=', 'id', Yii::$app->user->id])->all();
+            $user = $userClass::find()->andWhere(['IN', 'id', $users])->all();
             $list_data = ArrayHelper::map($user, 'id', 'fullName');
         }
 
@@ -393,21 +422,17 @@ class Comments extends \yii\db\ActiveRecord
                 self::STATUS_ACTIVE => 'success',
                 self::STATUS_DOING => 'info',
             ],
-            'Type' => [
-                self::TYPE_DANGER => 'ضروری',
-                self::TYPE_WARNING => 'مهم',
-                self::TYPE_SUCCESS => 'عادی',
-                self::TYPE_INFO => 'پایین',
+            'Priority' => [
+                self::PRIORITY_ESSENTIAL => 'ضروری',
+                self::PRIORITY_HIGH => 'مهم',
+                self::PRIORITY_MEDIUM => 'عادی',
+                self::PRIORITY_LOW => 'پایین',
             ],
-            'CssClass' => [
-                self::TYPE_DANGER => 'danger',
-                self::TYPE_WARNING => 'warning',
-                self::TYPE_SUCCESS => 'success',
-                self::TYPE_INFO => 'info',
-            ],
-            'MasterTaskType' => [
-                self::MASTER_TASK_TYPE_FINANCE => 'بخش مالی',
-                self::MASTER_TASK_TYPE_TECHNICAL => 'بخش فنی',
+            'PriorityClass' => [
+                self::PRIORITY_ESSENTIAL => 'danger',
+                self::PRIORITY_HIGH => 'warning',
+                self::PRIORITY_MEDIUM => 'success',
+                self::PRIORITY_LOW => 'info',
             ],
             'ClassNameFilter' => [
                 (TicketModule::getInstance()->comfortItemsClass) => 'امکانات رفاهی',
@@ -424,11 +449,14 @@ class Comments extends \yii\db\ActiveRecord
 
     /**
      * @inheritdoc
-     * @return CommentsQuery the active query used by this AR class.
+     * @return TicketsQuery the active query used by this AR class.
      */
     public static function find()
     {
-        $query = new CommentsQuery(get_called_class());
+        $query = new TicketsQuery(get_called_class());
+        if(TicketModule::getInstance()->hasSlaves && !Yii::$app->client->isMaster()){
+            $query->bySlave();
+        }
         return $query->active();
     }
 
@@ -450,7 +478,7 @@ class Comments extends \yii\db\ActiveRecord
 
         $currentUserId = Yii::$app->user->id;
 
-        return $firstTicket?->creator_id == $currentUserId || in_array($currentUserId, array_map(fn($user) => $user->id, $lastTicket?->users ?: []));
+        return $firstTicket?->creator_id == $currentUserId || in_array($currentUserId, array_map(fn($user) => $user->id, (array_merge($lastTicket?->users ?: [], $lastTicket?->department?->users ?: []))));
     }
 
     /**
@@ -495,25 +523,33 @@ class Comments extends \yii\db\ActiveRecord
 
     public static function Show()
     {
-        $views = CommentsView::find()->select('comment_id')->andWhere(['user_id' => Yii::$app->user->id]);
+        $views = TicketsView::find()->select('comment_id')->andWhere(['user_id' => Yii::$app->user->id]);
         return self::find()->andWhere(['NOT IN', 'id', $views])->all();
     }
 
     public function getViewed()
     {
-        return $this->getCommentsViews()->andWhere(['comment_id' => $this->id, 'user_id' => Yii::$app->user->id, 'viewed' => '0'])->count();
+        $a = $this->getCommentsViews()->andWhere(['user_id' => Yii::$app->user->id, 'viewed' => '1'])->createCommand()->rawSql;
+        return $this->getCommentsViews()->andWhere(['user_id' => Yii::$app->user->id, 'viewed' => '1'])->exists();
     }
 
     public function setViewed()
     {
-        CommentsView::updateAll(['viewed' => 1, 'insert_date' => time()], ['user_id' => Yii::$app->user->id, 'comment_id' => [$this->id, $this->parent_id], 'viewed' => 0]);
+        if(!$viewModel = $this->getCommentsViews()->andWhere(['user_id' => Yii::$app->user->id])->one()){
+            $viewModel = new TicketsView([
+                'comment_id' => $this->id,
+                'user_id' => Yii::$app->user->id
+            ]);
+        }
+        $viewModel->viewed = 1;
+        return $viewModel->save();
     }
 
     public function getOwnerList($total = true)
     {
         $list = '';
         $count = 0;
-        $comment = Comments::find()->where([
+        $comment = Tickets::find()->where([
             'or',
             [
                 'parent_id' => $this->parent_id ?: $this->id
@@ -524,7 +560,7 @@ class Comments extends \yii\db\ActiveRecord
         ])->orderBy(['id' => SORT_DESC])
             ->limit(1)
             ->one();
-        $owners = CommentsView::find()->joinWith(['user'])->andWhere(['comment_id' => $comment?->id])->all();
+        $owners = TicketsView::find()->joinWith(['user'])->andWhere(['comment_id' => $comment?->id])->all();
         foreach ($owners as $owner) {
             $user = $owner->user;
             if ($user) {
@@ -543,47 +579,38 @@ class Comments extends \yii\db\ActiveRecord
         return '<div class="d-inline-flex flex-wrap gap-1">' . $list . '</div>';
     }
 
-    public function saveInbox($master = false)
+    public function saveInbox()
     {
-        if ($this->type == self::TYPE_PRIVATE) {
-            foreach ($this->owner as $item) {
-                $commentViewMasterClass = TicketModule::getInstance()->commentsViewMasterClass;
-                $model = $master ? new $commentViewMasterClass() : new CommentsView();
-                $model->user_id = $item;
+        if (TicketModule::getInstance()->hasSlaves && $this->type == self::TYPE_MASTER) {
+                $model = new TicketsView();
+                $model->user_id = $this->parent->creator_id;
                 $model->comment_id = $this->id;
-                if ($master) $model->slave_id = $this->slave_id;
+                $model->slave_id = $this->slave_id;
                 if (!$model->save()) {
                     $this->addError('error_msg', Html::errorSummary($model));
                     return false;
                 }
-            }
         }
         return true;
     }
 
     public static function countInbox($status = self::STATUS_ACTIVE, $exist = false)
     {
-        $query = CommentsView::find()
-            ->joinWith(['comment'])
-            ->andWhere(['user_id' => Yii::$app->user->id, 'viewed' => 0])
-            ->andWhere(['<>', 'creator_id', Yii::$app->user->id])
-            ->andWhere(['AND', [Comments::tableName() . '.status' => $status]]);
-
+        $query = Tickets::find()
+            ->joinWith(['commentsViews', 'department.usersPivot'])
+            ->andWhere([
+                'OR',
+                ['AND', ['IS NOT', TicketsView::tableName() . '.user_id', null], [TicketsView::tableName() . '.user_id' => Yii::$app->user->id], [TicketsView::tableName() . '.viewed' => 0]],
+                [TicketsView::tableName() . '.user_id' => null, TicketsDepartmentUsers::tableName() . '.user_id' => Yii::$app->user->id],
+            ])
+            ->andWhere(['<>', Tickets::tableName() . '.creator_id', Yii::$app->user->id])
+            ->andWhere(['AND', [Tickets::tableName() . '.status' => $status]]);
         return $exist ? $query->exists() : $query->count();
-    }
-
-    public static function countInboxMaster($status = self::STATUS_ACTIVE)
-    {
-        $commentsMasterClass = TicketModule::getInstance()->commentsMasterClass;
-        return $commentsMasterClass ? $commentsMasterClass::find()
-            ->andWhere(['type' => self::TYPE_MASTER])
-            ->andWhere([Comments::tableName() . '.status' => $status])
-            ->count() : 0;
     }
 
     public function hasOwnerByID($user_id): bool
     {
-        return CommentsView::find()->byComment($this->id)->byUser($user_id)->exists();
+        return Tickets::find()->byComment($this->id)->byUser($user_id)->exists();
     }
 
     public function fields()
@@ -598,7 +625,6 @@ class Comments extends \yii\db\ActiveRecord
             //$fields['class_id'],
             $fields['link'],
             $fields['title'],
-            //$fields['css_class'],
             $fields['status'],
             //$fields['due_date'],
             $fields['created'],
@@ -606,7 +632,7 @@ class Comments extends \yii\db\ActiveRecord
         );
 
         $fields['color'] = function ($model) {
-            return self::itemAlias('Type', $model->css_class);
+            return self::itemAlias('Type', $model->priority);
         };
 
         return $fields;
@@ -674,7 +700,7 @@ class Comments extends \yii\db\ActiveRecord
             $model = new self(['scenario' => self::SCENARIO_AUTO]);
             $model->type = self::TYPE_PRIVATE;
             $model->kind = self::KIND_TICKET;
-            $model->css_class = self::TYPE_SUCCESS;
+            $model->priority = self::PRIORITY_MEDIUM;
             $model->type_task = $commentType->id;
             $model->title = $title;
             $model->des = $content;
@@ -743,11 +769,6 @@ class Comments extends \yii\db\ActiveRecord
         return $this->send_sms_at ? $this->send_sms_at - time() : 0;
     }
 
-    protected function notifySupporter(): void
-    {
-        TicketModule::getInstance()->notifySupporter($this);
-    }
-
     public function beforeSave($insert)
     {
         if ($this->isNewRecord) {
@@ -758,13 +779,17 @@ class Comments extends \yii\db\ActiveRecord
                 $this->creator_id = !Yii::$app->user->isGuest ? Yii::$app->user->id : 0;
             }
             $this->status = self::STATUS_ACTIVE;
+            if(TicketModule::getInstance()->hasSlaves){
+                $this->slave_id = $this->slave_id ?: Yii::$app->client->id;
+            }
+            if($this->type == self::TYPE_MASTER){
+                $this->user_fullName = Yii::$app->user->identity->fullName;
+                $this->user_number = Yii::$app->user->identity->username;
+            }
         }
         $this->des = !empty(\Yii::$app->phpNewVer->trim($this->des)) ? HtmlPurifier::process($this->des) : NULL;
         $this->update_id = !Yii::$app->user->isGuest ? Yii::$app->user->id : 0;
         $this->changed = time();
-        if ($this->type == self::TYPE_MASTER) {
-            $this->notifySupporter();
-        }
         return parent::beforeSave($insert);
     }
 
@@ -785,7 +810,7 @@ class Comments extends \yii\db\ActiveRecord
      */
     public function getMessages()
     {
-        return Comments::find()
+        return Tickets::find()
             ->where(['id' => $this->id])
             ->orWhere(['parent_id' => $this->parent_id ?: $this->id])
             ->orWhere(['id' => $this->parent_id]);
@@ -794,9 +819,9 @@ class Comments extends \yii\db\ActiveRecord
     /**
      * Get thread latest message
      *
-     * @return Comments|null
+     * @return Tickets|null
      */
-    public function getLatestMessage(): Comments|null
+    public function getLatestMessage(): Tickets|null
     {
         return $this->getMessages()
             ->orderBy(['created' => SORT_DESC])

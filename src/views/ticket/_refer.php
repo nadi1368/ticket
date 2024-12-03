@@ -1,6 +1,7 @@
 <?php
 
-use hesabro\ticket\models\Comments;
+use hesabro\ticket\models\Tickets;
+use hesabro\ticket\models\TicketsDepartments;
 use kartik\select2\Select2;
 use yii\bootstrap4\ActiveForm;
 use yii\helpers\Html;
@@ -9,8 +10,8 @@ use yii\widgets\MaskedInput;
 
 /**
  * @var yii\web\View $this
- * @var Comments $model
- * @var Comments $comment
+ * @var Tickets $model
+ * @var Tickets $comment
  * @var yii\bootstrap4\ActiveForm $form
  */
 ?>
@@ -24,13 +25,9 @@ use yii\widgets\MaskedInput;
         <div class="card-body">
             <div class="row">
                 <div class="col-md-12">
-                    <?= $form->field($model, 'owner')->widget(Select2::class, [
-                        'data' => Comments::itemAlias('Owner'),
-                        'options' => [
-                            'placeholder' => 'کاربران',
-                            'dir' => 'rtl',
-                            'multiple' => true,
-                        ],
+                    <?= $form->field($model, 'department_id')->dropdownList(TicketsDepartments::itemAlias('List'), [
+                        'prompt' => Yii::t('tickets', 'Select...'),
+                        'allowClear' => true
                     ]); ?>
                 </div>
 

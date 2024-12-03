@@ -2,12 +2,14 @@
 
 namespace hesabro\ticket\models;
 
+use Yii;
+
 /**
  * This is the ActiveQuery class for [[CommentsView]].
  *
  * @see CommentsView
  */
-class CommentsViewQuery extends \yii\db\ActiveQuery
+class TicketsViewQuery extends \yii\db\ActiveQuery
 {
     /*public function active()
     {
@@ -16,7 +18,7 @@ class CommentsViewQuery extends \yii\db\ActiveQuery
 
     /**
      * {@inheritdoc}
-     * @return CommentsView[]|array
+     * @return TicketsView[]|array
      */
     public function all($db = null)
     {
@@ -25,11 +27,16 @@ class CommentsViewQuery extends \yii\db\ActiveQuery
 
     /**
      * {@inheritdoc}
-     * @return CommentsView|array|null
+     * @return TicketsView|array|null
      */
     public function one($db = null)
     {
         return parent::one($db);
+    }
+
+    public function bySlave(): void
+    {
+        $this->andOnCondition([TicketsView::tableName() . '.slave_id' => Yii::$app->client->id]);
     }
 
     public function byUser($user_id): self

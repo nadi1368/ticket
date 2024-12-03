@@ -1,14 +1,14 @@
 <?php
 
 use hesabro\helpers\components\iconify\Iconify;
-use hesabro\ticket\models\Comments;
+use hesabro\ticket\models\Tickets;
 use yii\bootstrap4\ActiveForm;
 use yii\helpers\Html;
 use yii\helpers\Url;
 
 /* @var $this yii\web\View */
-/* @var $thread Comments */
-/* @var $model Comments */
+/* @var $thread Tickets */
+/* @var $model Tickets */
 /* @var $form yii\bootstrap4\ActiveForm */
 
 ?>

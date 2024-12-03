@@ -1,12 +1,12 @@
 <?php
 
-use hesabro\ticket\models\Comments;
+use hesabro\ticket\models\Tickets;
 use yii\helpers\Html;
 use yii\helpers\Url;
 
 $action = Yii::$app->controller->action->id;
-$inbox_count = Comments::countInbox();
-$doing_count = Comments::countInbox(Comments::STATUS_DOING);
+$inbox_count = Tickets::countInbox();
+$doing_count = Tickets::countInbox(Tickets::STATUS_DOING);
 ?>
 <?php if ($action != 'view') : ?>
 	<div class="incard-body p-3">

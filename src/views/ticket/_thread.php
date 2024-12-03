@@ -1,11 +1,11 @@
 <?php
 
-use hesabro\ticket\models\Comments;
+use hesabro\ticket\models\Tickets;
 use yii\helpers\Html;
 use yii\widgets\Pjax;
 
 /* @var yii\web\View $this */
-/* @var Comments $thread */
+/* @var Tickets $thread */
 
 $css = <<< CSS
 .history-card {
@@ -22,7 +22,7 @@ CSS;
 $this->registerCss($css);
 
 $messages = $thread?->getMessages()->all() ?: [];
-$rootTicket = current(array_filter($messages, fn(Comments $comment) => !$comment->parent_id)) ?: null;
+$rootTicket = current(array_filter($messages, fn(Tickets $comment) => !$comment->parent_id)) ?: null;
 ?>
 
 <div class="card">
@@ -49,7 +49,7 @@ $rootTicket = current(array_filter($messages, fn(Comments $comment) => !$comment
     <?php if (count($messages)): ?>
         <div class="p-3" style="overflow-y: auto; height: calc(100vh - 475px)">
             <?php
-            /** @var Comments $message */
+            /** @var Tickets $message */
             foreach ($messages as $message): ?>
                 <?php if ($message->type_task): ?>
                     <div class="row justify-content-center">
@@ -63,15 +63,15 @@ $rootTicket = current(array_filter($messages, fn(Comments $comment) => !$comment
                 <?php if (!$message->parent_id && $message->creator): ?>
                     <div class="row justify-content-center">
                         <div class="col-4 history-card d-flex flex-column">
-                            <span>این تیکت توسط <?= $message->creator?->fullName ?> ایجاد شد.</span>
+                            <span>این تیکت توسط <?= $message->getCreatorFullName() ?> ایجاد شد.</span>
                             <small class="text-center"><?= Yii::$app->jdate->date('H:i Y/m/d', $message->created) ?></small>
                         </div>
                     </div>
                 <?php endif; ?>
-                <?php if ($message->kind === Comments::KIND_REFER): ?>
+                <?php if ($message->kind === Tickets::KIND_REFER): ?>
                     <div class="row justify-content-center">
                         <div class="col-4 history-card d-flex flex-column">
-                            <span>این تیکت توسط <?= $message->creator?->fullName ?> به <?= implode('، ', array_map(fn(User $user) => $user->fullName, $message->users)) ?> ارجاع داده شد.</span>
+                            <span>این تیکت توسط <?= $message->getCreatorFullName() ?> به <?= implode('، ', array_map(fn(User $user) => $user->fullName, $message->users)) ?> ارجاع داده شد.</span>
                             <small class="text-center"><?= Yii::$app->jdate->date('H:i Y/m/d', $message->created) ?></small>
                         </div>
                     </div>
@@ -82,7 +82,7 @@ $rootTicket = current(array_filter($messages, fn(Comments $comment) => !$comment
                             <div class="card shadow-sm border">
                                 <div class="card-body p-3">
                                     <?php if (!$message->viewerIsAuthor) : ?>
-                                        <p><strong><?= $message->creator_id === 0 ? Yii::t('app', 'System') : $message->creator?->fullName ?></strong> <span
+                                        <p><strong><?= $message->creator_id === 0 ? Yii::t('app', 'System') : $message->getCreatorFullName() ?></strong> <span
                                                     class="font-light"><?= $message->creator?->job ?></span></p>
                                     <?php endif; ?>
                                     <p class="font-normal"><?= nl2br($message->des) ?></p>
@@ -113,8 +113,8 @@ $rootTicket = current(array_filter($messages, fn(Comments $comment) => !$comment
 
         <?= $this->render('_reply', [
             'thread' => $thread,
-            'model' => new Comments([
-                'scenario' => Comments::SCENARIO_CREATE
+            'model' => new Tickets([
+                'scenario' => Tickets::SCENARIO_CREATE
             ])
         ]) ?>
     <?php endif; ?>

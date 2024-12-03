@@ -1,9 +1,9 @@
 <?php
 
-use hesabro\ticket\models\Comments;
+use hesabro\ticket\models\Tickets;
 
 /* @var $this yii\web\View */
-/* @var $model Comments */
+/* @var $model Tickets */
 /* @var $searchModel backend\models\CommentsSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 

@@ -1,21 +1,21 @@
 <?php
 
 use hesabro\helpers\widgets\grid\GridView;
-use hesabro\ticket\models\Comments;
-use hesabro\ticket\models\CommentsSearch;
+use hesabro\ticket\models\Tickets;
+use hesabro\ticket\models\TicketsSearch;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\Pjax;
 
 /* @var $this yii\web\View */
-/* @var $searchModel CommentsSearch */
+/* @var $searchModel TicketsSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
 $this->title = Yii::t("app", "Outbox");
 
 $action = Yii::$app->controller->action->id;
-$inbox_count = Comments::countInbox();
-$doing_count = Comments::countInbox(Comments::STATUS_DOING);
+$inbox_count = Tickets::countInbox();
+$doing_count = Tickets::countInbox(Tickets::STATUS_DOING);
 ?>
 
 <?php Pjax::begin(['id' => 'mail_box']); ?>
@@ -60,14 +60,18 @@ $doing_count = Comments::countInbox(Comments::STATUS_DOING);
 					'headerOptions' => ['style' => 'text-align: right'],
 				],
 				[
-					'attribute' => 'css_class',
-					'value' => function ($model) {
-						return '<span class="badge badge-' . Comments::itemAlias('CssClass', $model->css_class) . '">' . Comments::itemAlias('Type', $model->css_class) . '</span>';
+					'attribute' => 'priority',
+					'value' => function (Tickets $model) {
+						return '<span class="badge badge-' . Tickets::itemAlias('PriorityClass', $model->priority) . '">' . Tickets::itemAlias('Priority', $model->priority) . '</span>';
 					},
 					'filter' => false,
 					'format' => 'raw',
 					'contentOptions' => ['class' => 'view-message', 'style' => 'width:30px'],
 				],
+                [
+                    'attribute' => 'department_id',
+                    'value' => 'department.title'
+                ],
 				[
 					'attribute' => 'title',
 					'value' => function ($model) {
@@ -86,7 +90,7 @@ $doing_count = Comments::countInbox(Comments::STATUS_DOING);
 				[
 					'attribute' => 'status',
 					'value' => function ($model) {
-						return '<span class="badge badge-' . Comments::itemAlias('CssStatus', $model->status) . '">' . Comments::itemAlias('Status', $model->status) . '</span>';
+						return '<span class="badge badge-' . Tickets::itemAlias('CssStatus', $model->status) . '">' . Tickets::itemAlias('Status', $model->status) . '</span>';
 					},
 					'filter' => false,
 					'format' => 'raw',

@@ -23,8 +23,9 @@ use yii\grid\GridView;
 class TicketModule extends \yii\base\Module
 {
 	public $controllerNamespace = 'hesabro\ticket\controllers';
+    public $layout = '@hesabro/ticket/views/layouts/main';
 
-    public $defaultRoute = 'ticket/inbox';
+    public $defaultRoute = 'ticket/index';
     /**
      * @var string the URL for getting users
      * response should be a JSON like this:
@@ -57,11 +58,4 @@ class TicketModule extends \yii\base\Module
 
 		parent::init();
 	}
-
-    public function notifySupporter(Comments $comment): void
-    {
-        if ($this->notifyToSupporter){
-            ($this->notifyToSupporter)($comment);
-        }
-    }
 }

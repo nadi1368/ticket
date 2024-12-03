@@ -1,6 +1,7 @@
 <?php
 
-use hesabro\ticket\models\Comments;
+use hesabro\ticket\models\Tickets;
+use hesabro\ticket\models\TicketsDepartments;
 use yii\helpers\Html;
 use yii\bootstrap4\ActiveForm;
 use yii\widgets\MaskedInput;
@@ -9,6 +10,8 @@ use kartik\select2\Select2;
 /** @var yii\web\View $this */
 /** @var common\models\Comments $model */
 /** @var yii\bootstrap4\ActiveForm $form */
+/* @var $owner false|mixed */
+/* @var $parent_id int|mixed */
 
 $styles = <<<CSS
 	.field-comments-file label {
@@ -36,48 +39,42 @@ $this->registerCss($styles);
 
 <div class="comments-form">
 
-	<?php $form = ActiveForm::begin([
-		'id' => 'ajax-form-comment-answer',
-		'options' => [
-			'enctype' => "multipart/form-data",
-		],
-	]); ?>
-	<div class="card-body">
-        <div class="alert alert-warning mb-4 text-center">
-            <h4 class="m-0">شما از طریق این فرم می‌توانید با تیم پشتیبانی حسابرو در ارتباط باشید و درخواست‌های خودرا مطرح نمایید.</h4>
-        </div>
+    <?php $form = ActiveForm::begin([
+        'id' => 'ajax-form-comment-answer',
+        'options' => [
+            'enctype' => "multipart/form-data",
+        ],
+    ]); ?>
+    <div class="card-body">
+        <?php if ($model->type == Tickets::TYPE_MASTER): ?>
+            <div class="alert alert-warning mb-4 text-center">
+                <h4 class="m-0">شما از طریق این فرم می‌توانید با تیم پشتیبانی حسابرو در ارتباط باشید و درخواست‌های خودرا
+                    مطرح نمایید.</h4>
+            </div>
+        <?php endif; ?>
         <div class="row">
-			<div class="col-md-6">
-				<?= $form->field($model, 'title')->label(Yii::t('app', 'Subject')) ?>
-			</div>
-				<?php if ($model->type == Comments::TYPE_MASTER): ?>
-					<div class="col-md-3">
-						<?= $form->field($model, 'master_task_type_id')->dropDownList(Comments::itemAlias('MasterTaskType'), ['prompt' => Yii::t('app', 'Select...')]) ?>
-					</div>
-				<?php else: ?>
-					<div class="col-md-6">
-						<?= $form->field($model, 'owner')->widget(Select2::class, [
-							'data' => Comments::itemAlias('Owner'),
-							'options' => [
-								'placeholder' => 'کاربران',
-								'dir' => 'rtl',
-								'multiple' => true,
-								'disabled' => $parent_id > 0 ? true : false,
-							],
-						]); ?>
-					</div>
-				<?php endif; ?>
-			<div class="col-md-3">
-				<?= $form->field($model, 'css_class')->dropDownList(Comments::itemAlias('Type'), ['prompt' => Yii::t('app','Select...')]) ?>
-			</div>
-			<?php if ($model->type != Comments::TYPE_MASTER): ?>
-				<div class="col-md-4 date-input">
-					<?= $form->field($model, 'due_date')->widget(MaskedInput::class, [
-						'mask' => '9999/99/99',
-					]) ?>
-				</div>
-				<div class="col-md-4">
-					<?= $form->field($model, 'send_email', ['options' => ['class' => 'mb-2']])->checkbox(['id' => 'email-checkbox']) ?>
+            <div class='col-md-6'>
+                <?= $form->field($model, 'department_id')->dropdownList($model->type == Tickets::TYPE_MASTER ? (TicketsDepartments::itemAlias('MasterList') ?: []) : (TicketsDepartments::itemAlias('List') ?: []), [
+                    'prompt' => Yii::t('tickets', 'Select...'),
+                    'disabled' => $parent_id > 0 ? true : false,
+                    'allowClear' => true
+                ]); ?>
+            </div>
+            <div class='col-md-6'>
+                <?= $form->field($model, 'priority')->dropDownList(Tickets::itemAlias('Priority'), ['prompt' => Yii::t('app', 'Select...')]) ?>
+            </div>
+            <div class="col-md-6">
+                <?= $form->field($model, 'title')->label(Yii::t('app', 'Subject')) ?>
+            </div>
+
+            <?php if ($model->type != Tickets::TYPE_MASTER): ?>
+                <div class="col-md-4 date-input">
+                    <?= $form->field($model, 'due_date')->widget(MaskedInput::class, [
+                        'mask' => '9999/99/99',
+                    ]) ?>
+                </div>
+                <div class="col-md-4">
+                    <?= $form->field($model, 'send_email', ['options' => ['class' => 'mb-2']])->checkbox(['id' => 'email-checkbox']) ?>
                     <?= $form->field($model, 'send_email_at')->widget(MaskedInput::class, [
                         'mask' => '9999/99/99 99:99',
                         'options' => [
@@ -86,7 +83,7 @@ $this->registerCss($styles);
                             'disabled' => !$model->send_email
                         ]
                     ])->label(false)->hint('در صورت تنظیم نشدن تاریخ، بعد از ذخیره ایمیل ارسال می‌شود.') ?>
-				</div>
+                </div>
                 <div class="col-md-4">
                     <?= $form->field($model, 'send_sms', ['options' => ['class' => 'mb-2']])->checkbox(['id' => 'sms-checkbox']) ?>
                     <div class="date-input">
@@ -100,24 +97,23 @@ $this->registerCss($styles);
                         ])->label(false)->hint('در صورت تنظیم نشدن تاریخ، بعد از ذخیره پیامک ارسال می‌شود.') ?>
                     </div>
                 </div>
-			<?php endif; ?>
+            <?php endif; ?>
+            <div class="col-md-12">
+                <?= $form->field($model, 'des')->textarea(['rows' => 6, 'placeholder' => Yii::t('app', 'Describe here...')])->label(false) ?>
+            </div>
 
-			<div class="col-md-12">
-				<?= $form->field($model, 'des')->textarea(['rows' => 6, 'placeholder' => Yii::t('app', 'Describe here...')])->label(false) ?>
-			</div>
+            <div class="col-md-12">
+                <?= $form->field($model, 'file')->fileInput()->label(Yii::t('app', 'Attach File') . '<br/><small>پسوند هایی که پشتیبانی میشوند: jpg, png, jpeg, pdf, xlsx, mp4</small>') ?>
+                <p></p>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <?= Html::submitButton(Yii::t('app', 'Send'), ['class' => 'btn btn-lg btn-success ']) ?>
+    </div>
 
-			<div class="col-md-12">
-				<?= $form->field($model, 'file')->fileInput(['class' => 'd-none'])->label(Yii::t('app', 'Attach File') . '<br/><small>پسوند هایی که پشتیبانی میشوند: jpg, png, jpeg, pdf, xlsx, mp4</small>') ?>
-				<p></p>
-			</div>
-		</div>
-	</div>
-	<div class="card-footer">
-		<?= Html::submitButton(Yii::t('app', 'Send'), ['class' => 'btn btn-lg btn-success ']) ?>
-	</div>
-
-	<div class="clearfix"></div>
-	<?php ActiveForm::end(); ?>
+    <div class="clearfix"></div>
+    <?php ActiveForm::end(); ?>
 
 </div>
 <?php

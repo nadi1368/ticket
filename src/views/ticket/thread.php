@@ -1,12 +1,12 @@
 <?php
 
-use hesabro\ticket\models\Comments;
+use hesabro\ticket\models\Tickets;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\Pjax;
 
 /* @var $this yii\web\View */
-/* @var $thread Comments */
+/* @var $thread Tickets */
 /* @var $tickets yii\data\ActiveDataProvider */
 
 $this->title = $thread->title;
@@ -21,6 +21,8 @@ $css = <<< CSS
 }
 CSS;
 $this->registerCss($css);
+
+Pjax::begin(['id' => 'mail_box']);
 ?>
 <div class="d-flex flex-column position-absolute w-100 h-100" style="left: 0; top: 0;">
 
@@ -51,3 +53,5 @@ $this->registerCss($css);
         </div>
     </div>
 </div>
+<?php
+Pjax::end();

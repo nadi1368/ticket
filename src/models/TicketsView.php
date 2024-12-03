@@ -15,9 +15,9 @@ use Yii;
  * @property int $insert_date
  *
  * @property User $user
- * @property Comments $comment
+ * @property Tickets $ticket
  */
-class CommentsView extends \yii\db\ActiveRecord
+class TicketsView extends \yii\db\ActiveRecord
 {
     /**
      * {@inheritdoc}
@@ -41,8 +41,8 @@ class CommentsView extends \yii\db\ActiveRecord
             [['user_id', 'comment_id'], 'required'],
             [['user_id', 'comment_id', 'viewed', 'insert_date'], 'integer'],
             [['user_id', 'comment_id'], 'unique', 'targetAttribute' => ['user_id', 'comment_id']],
-            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => Yii::$app->user->identityClass, 'targetAttribute' => ['user_id' => 'id']],
-            [['comment_id'], 'exist', 'skipOnError' => true, 'targetClass' => Comments::class, 'targetAttribute' => ['comment_id' => 'id']],
+            //[['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => Yii::$app->user->identityClass, 'targetAttribute' => ['user_id' => 'id']],
+            [['comment_id'], 'exist', 'skipOnError' => true, 'targetClass' => Tickets::class, 'targetAttribute' => ['comment_id' => 'id']],
         ];
     }
 
@@ -72,25 +72,28 @@ class CommentsView extends \yii\db\ActiveRecord
      */
     public function getComment()
     {
-        return $this->hasOne(Comments::class, ['id' => 'comment_id']);
+        return $this->hasOne(Tickets::class, ['id' => 'comment_id']);
     }
 
     /**
      * {@inheritdoc}
-     * @return CommentsViewQuery the active query used by this AR class.
+     * @return TicketsViewQuery() the active query used by this AR class.
      */
     public static function find()
     {
-        return new CommentsViewQuery(get_called_class());
+        $query = new TicketsViewQuery(get_called_class());
+        if(TicketModule::getInstance()->hasSlaves){
+            $query->bySlave();
+        }
+        return $query;
     }
 
 
     public function beforeSave($insert)
     {
-        if ($this->isNewRecord) {
-            $this->viewed = 0;
+        if(TicketModule::getInstance()->hasSlaves){
+            $this->slave_id = $this->slave_id ?: Yii::$app->client->id;
         }
-
         return parent::beforeSave($insert);
     }
 

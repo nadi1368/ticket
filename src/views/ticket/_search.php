@@ -1,14 +1,14 @@
 <?php
 
-use hesabro\ticket\models\Comments;
-use hesabro\ticket\models\CommentsSearch;
+use hesabro\ticket\models\Tickets;
+use hesabro\ticket\models\TicketsSearch;
 use yii\helpers\Html;
 use yii\bootstrap4\ActiveForm;
 use kartik\select2\Select2;
 use yii\widgets\MaskedInput;
 
 /* @var $this yii\web\View */
-/* @var $model CommentsSearch */
+/* @var $model TicketsSearch */
 /* @var $form yii\bootstrap4\ActiveForm */
 ?>
 
@@ -22,31 +22,27 @@ use yii\widgets\MaskedInput;
     <div class="row">
 
         <div class="col-md-2">
-            <?= $form->field($model, 'status')->dropDownList(Comments::itemAlias('Status'), ['prompt' => Yii::t('app', 'Select...')]) ?>
+            <?= $form->field($model, 'status')->dropDownList(Tickets::itemAlias('Status'), ['prompt' => Yii::t('app', 'Select...')]) ?>
         </div>
 
         <div class="col-md-2">
-            <?= $form->field($model, 'css_class')->dropDownList(Comments::itemAlias('Type'), ['prompt' => Yii::t('app', 'Select...')]) ?>
+            <?= $form->field($model, 'priority')->dropDownList(Tickets::itemAlias('Priority'), ['prompt' => Yii::t('app', 'Select...')]) ?>
         </div>
 
         <div class="col-md-2">
             <?= $form->field($model, 'class_name')
-                ->dropDownList(Comments::itemAlias('ClassNameFilter'), ['prompt' => Yii::t('app', 'Select...')]) ?>
+                ->dropDownList(Tickets::itemAlias('ClassNameFilter'), ['prompt' => Yii::t('app', 'Select...')]) ?>
         </div>
 
         <div class="col-md-4">
-            <?php if ($model->type == Comments::TYPE_MASTER) : ?>
-                <?= $form->field($model, 'master_task_type_id')->dropDownList(Comments::itemAlias('MasterTaskType'), ['prompt' => Yii::t('app', 'Select...')]) ?>
-            <?php else : ?>
-                <?= $form->field($model, 'owner')->widget(Select2::class, [
-                    'data' => Comments::itemAlias('Owner'),
-                    'options' => [
-                        'placeholder' => 'کاربران',
-                        'dir' => 'rtl',
-                        'multiple' => true,
-                    ],
-                ]); ?>
-            <?php endif; ?>
+            <?= $form->field($model, 'owner')->widget(Select2::class, [
+                'data' => Tickets::itemAlias('Owner'),
+                'options' => [
+                    'placeholder' => 'کاربران',
+                    'dir' => 'rtl',
+                    'multiple' => true,
+                ],
+            ]); ?>
         </div>
 
         <div class="col-md-3">
