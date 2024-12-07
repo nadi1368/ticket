@@ -23,7 +23,7 @@ use yii\grid\GridView;
 class TicketModule extends \yii\base\Module
 {
 	public $controllerNamespace = 'hesabro\ticket\controllers';
-    public $layout = '@hesabro/ticket/views/layouts/main';
+    public $layout = '@backend/views/layouts/main_tickets';
 
     public $defaultRoute = 'ticket/index';
     /**

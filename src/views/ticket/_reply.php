@@ -18,7 +18,7 @@ use yii\helpers\Url;
         'id' => 'reply-form',
         'action' => Url::to(['ticket/reply', 'id' => $thread->id ])
     ]); ?>
-    <input type="file" id="comments-file" class="d-none" name="<?= $model->formName() ?>[file]" aria-invalid="false" value />
+    <input type="file" id="tickets-file" class="d-none" name="<?= $model->formName() ?>[file]" aria-invalid="false" value />
     <div class="d-flex align-items-center justify-content-start">
         <div style="flex: 1">
             <?= $form->field($model, 'des', ['options' => ['tag' => false]])->textarea(['row' => 1, 'class' => 'form-control form-control-lg border-0', 'placeholder' => 'پاسخ خود را شرح دهید...'])->label(false) ?>
@@ -44,55 +44,7 @@ use yii\helpers\Url;
 $pjaxUrl = Url::to(['ticket/thread', 'id' => $thread->id]);
 $script = <<< JS
 $(document).ready(function () {
-    const scrollToEnd = () => {
-        const messagesList = $('#messages-container').find('div:first')
-        messagesList.animate({ scrollTop: messagesList[0].scrollHeight }, 10, 'swing')
-    }
-    
-    $('#file-upload').on('click', function() {
-        $('#comments-file').click();
-    })
 
-    $('#messages-container').on('pjax:end', function () {
-        scrollToEnd()
-    })
-    
-    scrollToEnd()
-    
-    $('#reply-form').on('beforeSubmit', function (e) {
-        e.preventDefault();
-        e.stopPropagation()
-        const form = $(this)
-        $.ajax({
-            url: form.attr('action'),
-            method: 'POST',
-            data: new FormData(this),
-            processData: false, 
-            contentType: false,
-            beforeSend: function () {
-                form.find('button[type="submit"]').attr('disabled', 'disabled')
-                form.find('button[type="submit"] .text').hide()
-                form.find('button[type="submit"] .loading').show()
-            },
-            complete: function () {
-                form.find('button[type="submit"] .loading').hide()
-                form.find('button[type="submit"] .text').show()
-                form.find('button[type="submit"]').removeAttr('disabled')
-            },
-            success: function () {
-                form.find('textarea[name="Comments[des]"]').val('')
-                $.pjax({
-                    url: '$pjaxUrl',
-                    container: '#messages-container',
-                    replace: false,
-                    push: false,
-                    success: () => {
-                        scrollToEnd()
-                    }
-                }) 
-            }
-        })
-    })
     
 })
 JS;

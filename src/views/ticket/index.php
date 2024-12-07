@@ -44,14 +44,48 @@ $('.mail-view-link').on('click',function (){
             } else {
                showtoast(response.msg, 'error');
             }
-          
         },
         error: function (e) {
             alert('خطایی رخ داده است.');
         }
 
     });//ajax
-})
+});
+
+
+    
+    $('#file-upload').on('click', function() {
+        debugger;
+        $('#tickets-file').click();
+    })
+        
+    $('#reply-form').on('beforeSubmit', function (e) {
+        debugger;
+        e.preventDefault();
+        e.stopPropagation()
+        const form = $(this)
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: new FormData(this),
+            processData: false, 
+            contentType: false,
+            beforeSend: function () {
+                form.find('button[type="submit"]').attr('disabled', 'disabled')
+                form.find('button[type="submit"] .text').hide()
+                form.find('button[type="submit"] .loading').show()
+            },
+            complete: function () {
+                form.find('button[type="submit"] .loading').hide()
+                form.find('button[type="submit"] .text').show()
+                form.find('button[type="submit"]').removeAttr('disabled')
+            },
+            success: function () {
+                debugger;
+                form.find('textarea[name="Tickets[des]"]').val('')
+            }
+        })
+    });
 JS;
 $this->registerJs($js);
 ?>

@@ -16,7 +16,7 @@ class TicketsDepartmentsSearch extends TicketsDepartments
     public function rules()
     {
         return [
-            [['id', 'status', 'created_at', 'created_by', 'updated_at', 'updated_by', 'slave_id'], 'integer'],
+            [['id', 'status', 'created_at', 'created_by', 'updated_at', 'updated_by'], 'integer'],
             [['title'], 'safe'],
         ];
     }
@@ -68,7 +68,6 @@ class TicketsDepartmentsSearch extends TicketsDepartments
             'created_by' => $this->created_by,
             'updated_at' => $this->updated_at,
             'updated_by' => $this->updated_by,
-            'slave_id' => $this->slave_id,
         ]);
 
         $query->andFilterWhere(['like', 'title', $this->title]);

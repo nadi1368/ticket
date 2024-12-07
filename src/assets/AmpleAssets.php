@@ -13,13 +13,16 @@ class AmpleAssets extends AssetBundle
     public $basePath = '@webroot';
     public $baseUrl = '@web';
     public $js = [
-        'js/shortcut.js',
-        'js/keyword.js',
         'js/ajax-modal-popup.js',
         'js/toast.js',
+        'js/jquery.double-keypress.js',
         'js/custom.js',
+        'js/keyword.js',
+        'js/account.js',
+        // sweetalert2 JavaScript -->
         'js/sweetalert2.all.min.js',
-        'js/hotkeys.min.js?v=1',
+
+
         // ample 7.0
         'ample70/js/app.min.js',
         'ample70/js/app.rtl.init.js',
@@ -35,6 +38,7 @@ class AmpleAssets extends AssetBundle
         'ample70/css/styles.css',
         'themify-icons/style.css',
         'css/fonts/iranSansNumber/css/style.css',
+        'css/fonts/iranSansWebFonts/css/style.css',
         'css/fonts/font-awesome/css/all.min.css',
         // 'css/fonts/font-awesome-5/css/all.min.css',
     ];

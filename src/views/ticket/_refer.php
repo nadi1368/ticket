@@ -25,7 +25,7 @@ use yii\widgets\MaskedInput;
         <div class="card-body">
             <div class="row">
                 <div class="col-md-12">
-                    <?= $form->field($model, 'department_id')->dropdownList(TicketsDepartments::itemAlias('List'), [
+                    <?= $form->field($model, 'department_id')->dropdownList(TicketsDepartments::itemAlias('List') ?: [], [
                         'prompt' => Yii::t('tickets', 'Select...'),
                         'allowClear' => true
                     ]); ?>

@@ -2,6 +2,7 @@
 
 namespace hesabro\ticket\models;
 
+use hesabro\ticket\TicketModule;
 use Yii;
 
 /**
@@ -30,7 +31,7 @@ class TicketsDepartmentUsers extends \yii\db\ActiveRecord
      */
     public static function getDb()
     {
-        return Yii::$app->get('master');
+        return Yii::$app->get(TicketModule::getInstance()->db);
     }
 
     /**

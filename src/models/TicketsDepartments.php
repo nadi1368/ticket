@@ -2,7 +2,6 @@
 
 namespace hesabro\ticket\models;
 
-use common\components\Client;
 use hesabro\helpers\behaviors\StatusActiveBehavior;
 use hesabro\ticket\TicketModule;
 use Yii;
@@ -21,7 +20,6 @@ use yii\helpers\ArrayHelper;
  * @property int|null $created_by
  * @property int $updated_at
  * @property int|null $updated_by
- * @property int $slave_id
  *
  * @property User[] $users
  */
@@ -72,7 +70,7 @@ class TicketsDepartments extends \yii\db\ActiveRecord
     {
         return [
             [['title', 'user_ids'], 'required'],
-            [['status', 'created_at', 'created_by', 'updated_at', 'updated_by', 'slave_id'], 'integer'],
+            [['status', 'created_at', 'created_by', 'updated_at', 'updated_by'], 'integer'],
             [['title'], 'string', 'max' => 64],
             [['user_ids'], 'each', 'rule' => ['required']],
             [['user_ids'], 'each', 'rule' => ['exist', 'skipOnError' => true, 'targetClass' => Yii::$app->user->identityClass, 'targetAttribute' => 'id']],
@@ -100,7 +98,7 @@ class TicketsDepartments extends \yii\db\ActiveRecord
     {
         $scenarios = parent::scenarios();
 
-        $scenarios[self::SCENARIO_CREATE] = ['id', 'title', 'status', 'created_at', 'created_by', 'updated_at', 'updated_by', 'slave_id', ];
+        $scenarios[self::SCENARIO_CREATE] = ['id', 'title', 'status', 'created_at', 'created_by', 'updated_at', 'updated_by'];
 
         return $scenarios;
     }
