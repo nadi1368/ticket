@@ -38,10 +38,14 @@ class TicketModule extends \yii\base\Module
     public string $getUsersUrl;
 
     public string $db = 'db';
+
+
+    public string | null $user = null;
+
     public ?string $comfortItemsClass;
     public ?string $authAssignmentClass;
     public ?string $authItemChildClass;
-    public string $getCommentsPermission = 'comments/get';
+    public array $getCommentsPermission = ['comments/get'];
     public ?string $clientComponentClass = null;
     public ?string $commentsMasterClass = null;
     public ?string $commentsViewMasterClass = null;

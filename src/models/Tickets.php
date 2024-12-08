@@ -405,10 +405,8 @@ class Tickets extends \yii\db\ActiveRecord
         }
 
         if ($type == 'Owner') {
-            $userClass = Yii::$app->user->identityClass;
-            $users = (TicketModule::getInstance()->authAssignmentClass)::find()->select('user_id')->andWhere(['IN', 'item_name', (TicketModule::getInstance()->authItemChildClass)::find()->select('parent')->andWhere(['child' => TicketModule::getInstance()->getCommentsPermission])]);
-            $user = $userClass::find()->andWhere(['IN', 'id', $users])->all();
-            $list_data = ArrayHelper::map($user, 'id', 'fullName');
+            $userClass = TicketModule::getInstance()->user;
+            $list_data = $userClass::getUserWithRoles(TicketModule::getInstance()->getCommentsPermission);
         }
 
         $_items = [
