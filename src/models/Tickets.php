@@ -406,7 +406,7 @@ class Tickets extends \yii\db\ActiveRecord
 
         if ($type == 'Owner') {
             $userClass = TicketModule::getInstance()->user;
-            $list_data = $userClass::getUserWithRoles(TicketModule::getInstance()->getCommentsPermission);
+            $list_data = $userClass::getUserWithRoles(TicketModule::getInstance()->ticketsRole);
         }
 
         $_items = [

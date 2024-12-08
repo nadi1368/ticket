@@ -45,7 +45,7 @@ class TicketModule extends \yii\base\Module
     public ?string $comfortItemsClass;
     public ?string $authAssignmentClass;
     public ?string $authItemChildClass;
-    public array $getCommentsPermission = ['comments/get'];
+    public array $ticketsRole = [];
     public ?string $clientComponentClass = null;
     public ?string $commentsMasterClass = null;
     public ?string $commentsViewMasterClass = null;
