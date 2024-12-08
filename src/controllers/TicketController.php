@@ -159,10 +159,7 @@ class TicketController extends Controller
 
                 if ($flag) {
                     $transaction->commit();
-                    return $this->asJson([
-                        'success' => true,
-                        'msg' => Yii::t('app', 'Item Created')
-                    ]);
+                    return $this->redirect(['index', 'thread_id' => $thread->id]);
                 }
 
                 $transaction->rollBack();
@@ -330,14 +327,15 @@ class TicketController extends Controller
         $model->setScenario(Tickets::SCENARIO_SEND);
         if($master){
             $model->type = Tickets::TYPE_MASTER;
-        } else {
-            $model->type = $type ?: (is_array($model->owner) ? Tickets::TYPE_PRIVATE : ($parent_id > 0 ? Tickets::TYPE_PRIVATE : ($model->department_id ? Tickets::TYPE_DEPARTMENT : Tickets::TYPE_PUBLIC)));
         }
         $model->referrer_url = Yii::$app->request->referrer;
         if ($model->load(Yii::$app->request->post())) {
             $model->parent_id = $parent_id;
             if ($owner) {
                 $model->owner = [$owner];
+            }
+            if(!$model->type){
+                $model->type = $type ?: (is_array($model->owner) ? Tickets::TYPE_PRIVATE : ($parent_id > 0 ? Tickets::TYPE_PRIVATE : ($model->department_id ? Tickets::TYPE_DEPARTMENT : Tickets::TYPE_PUBLIC)));
             }
             $db = TicketModule::getInstance()->db;
             $transaction = Yii::$app->$db->beginTransaction();
@@ -403,7 +401,7 @@ class TicketController extends Controller
             $statuses = Tickets::itemAlias('Status');
             if (array_key_exists($type, $statuses)) {
                 $model->assigned_to = Yii::$app->user->id;
-                Tickets::updateAll(['status' => $type, new Expression('JSON_SET(additional_data, "$.assigned_to", ' . Yii::$app->user->id . ')')], ['OR', ['id' => $model->parent_id ?: $model->id], ['parent_id' => $model->parent_id ?: $model->id]]);
+                Tickets::updateAll(['status' => $type, 'additional_data' => new Expression('JSON_SET(additional_data, "$.assigned_to", ' . Yii::$app->user->id . ')')], ['OR', ['id' => $model->parent_id ?: $model->id], ['parent_id' => $model->parent_id ?: $model->id]]);
                 $result = [
                     'status' => true,
                     'message' => Yii::t("app", "Item Updated")

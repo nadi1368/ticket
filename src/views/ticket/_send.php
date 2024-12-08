@@ -73,35 +73,10 @@ $this->registerCss($styles);
                         'mask' => '9999/99/99',
                     ]) ?>
                 </div>
-                <div class="col-md-4">
-                    <?= $form->field($model, 'send_email', ['options' => ['class' => 'mb-2']])->checkbox(['id' => 'email-checkbox']) ?>
-                    <?= $form->field($model, 'send_email_at')->widget(MaskedInput::class, [
-                        'mask' => '9999/99/99 99:99',
-                        'options' => [
-                            'id' => 'email-date',
-                            'placeholder' => 'تاریخ ارسال ایمیل (اختیاری)',
-                            'disabled' => !$model->send_email
-                        ]
-                    ])->label(false)->hint('در صورت تنظیم نشدن تاریخ، بعد از ذخیره ایمیل ارسال می‌شود.') ?>
-                </div>
-                <div class="col-md-4">
-                    <?= $form->field($model, 'send_sms', ['options' => ['class' => 'mb-2']])->checkbox(['id' => 'sms-checkbox']) ?>
-                    <div class="date-input">
-                        <?= $form->field($model, 'send_sms_at')->widget(MaskedInput::class, [
-                            'mask' => '9999/99/99 99:99',
-                            'options' => [
-                                'id' => 'sms-date',
-                                'placeholder' => 'تاریخ ارسال پیامک (اختیاری)',
-                                'disabled' => !$model->send_sms
-                            ],
-                        ])->label(false)->hint('در صورت تنظیم نشدن تاریخ، بعد از ذخیره پیامک ارسال می‌شود.') ?>
-                    </div>
-                </div>
             <?php endif; ?>
             <div class="col-md-12">
                 <?= $form->field($model, 'des')->textarea(['rows' => 6, 'placeholder' => Yii::t('app', 'Describe here...')])->label(false) ?>
             </div>
-
             <div class="col-md-12">
                 <?= $form->field($model, 'file')->fileInput()->label(Yii::t('app', 'Attach File') . '<br/><small>پسوند هایی که پشتیبانی میشوند: jpg, png, jpeg, pdf, xlsx, mp4</small>') ?>
                 <p></p>
@@ -119,10 +94,10 @@ $this->registerCss($styles);
 <?php
 $script = <<< JS
 
-$('#comments-file').on('change', function() {
+$('#tickets-file').on('change', function() {
 	var input = $(this);
 	var value = input.val();
-	var subtitle = $('.field-comments-file label > small');
+	var subtitle = $('.field-tickets-file label > small');
 
 	if(value) {
 		subtitle.html(value);

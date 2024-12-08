@@ -20,7 +20,7 @@ $canChangeStatus = $model->canChangeStatus()
 ?>
 
 <div class="row">
-    <div class="col-md-5">
+    <div class="col-md-4">
         <?php Pjax::begin(['id' => 'mail_box']); ?>
         <div class="compose-btn">
             <?= $fullDetail ? Html::a(
@@ -145,13 +145,14 @@ $canChangeStatus = $model->canChangeStatus()
             <small class="badge-inverse px-2 py-1 d-inline-flex"><?= $model->creator_id === 0 ? Yii::t('app', 'System') : $model->creator?->fullName ?></small>
         </h4>
     </div>
-    <div class='col-md-6 mt-4'>
+    <hr>
+    <div class='col-md-7 mt-4'>
         <h4 class='mb-0'>
             <?= Yii::t('tickets', 'Department') . ':' ?>
             <?= $model->department?->title ?>
         </h4>
     </div>
-    <div class="col-md-6 mt-4">
+    <div class="col-md-5 mt-4">
         <h4 class="mb-0">
             <?= Yii::t("tickets", "Receivers") . ':' ?>
             <?= $model->getOwnerList() ?>

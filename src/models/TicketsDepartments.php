@@ -2,6 +2,7 @@
 
 namespace hesabro\ticket\models;
 
+use common\components\Client;
 use hesabro\helpers\behaviors\StatusActiveBehavior;
 use hesabro\ticket\TicketModule;
 use Yii;

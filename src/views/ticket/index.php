@@ -31,11 +31,20 @@ $action = $action ?? Yii::$app->controller->action->id;
 <?php Pjax::end();
 
 $ajax_url = Url::to(['thread']);
+$thread_id = Yii::$app->request->get('thread_id');
 $js = <<< JS
+var thread_id = "$thread_id";
+if(thread_id){
+    showThread(thread_id);
+}
 $('.mail-view-link').on('click',function (){
         $('#thread_box').html('<div class="spinner-grow" role="status"> <span class="visually-hidden">Loading...</span></div> لطفا صبر کنید ...').attr('disabled', 'disabled')
         var id = $(this).data('mail_id');
-        $.ajax({
+        showThread(id);
+});
+
+function showThread(id) {
+    $.ajax({
         url: '$ajax_url?id=' + id,
         type: 'GET',
         success: function (response) {
@@ -48,18 +57,16 @@ $('.mail-view-link').on('click',function (){
         error: function (e) {
             alert('خطایی رخ داده است.');
         }
-
     });//ajax
-});
+}
 
 
-    
-    $('#file-upload').on('click', function() {
-        debugger;
+$(document).ready(function () {
+    $(document).on('click', '#file-upload', function() {
         $('#tickets-file').click();
-    })
+    });
         
-    $('#reply-form').on('beforeSubmit', function (e) {
+    $(document).on('beforeSubmit', '#reply-form', function (e) {
         debugger;
         e.preventDefault();
         e.stopPropagation()
@@ -81,11 +88,11 @@ $('.mail-view-link').on('click',function (){
                 form.find('button[type="submit"]').removeAttr('disabled')
             },
             success: function () {
-                debugger;
                 form.find('textarea[name="Tickets[des]"]').val('')
             }
         })
     });
+});
 JS;
 $this->registerJs($js);
 ?>
