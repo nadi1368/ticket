@@ -24,7 +24,7 @@ $canChangeStatus = $model->canChangeStatus()
         <?php Pjax::begin(['id' => 'mail_box']); ?>
         <div class="compose-btn">
             <?= $fullDetail ? Html::a(
-                '<i class="fa fa-reply"></i> ' . Yii::t("app", "Answer"),
+                '<i class="fa fa-reply"></i> ' . Yii::t("tickets", "Answer"),
                 [
                     'ticket/send',
                     'owner' => $model->creator_id,
@@ -32,17 +32,17 @@ $canChangeStatus = $model->canChangeStatus()
                     'title' => 'پاسخ به - ' . $model->title,
                 ],
                 [
-                    'title' => Yii::t("app", "Answer"),
+                    'title' => Yii::t("tickets", "Answer"),
                     'class' => 'btn btn-sm btn-primary showModalButton'
                 ]
             ) : '' ?>
             <?= $canChangeStatus && ($model->status == Tickets::STATUS_ACTIVE || $model->status == Tickets::STATUS_DOING) ?
                 Html::a(
-                    '<i class="fa fa-times"></i> ' . Yii::t("app", "Close Ticket"),
+                    '<i class="fa fa-times"></i> ' . Yii::t("tickets", "Close Ticket"),
                     'javascript:void(0)',
                     [
-                        'title' => Yii::t("app", "Close Ticket"),
-                        'aria-label' => Yii::t("app", "Close Ticket"),
+                        'title' => Yii::t("tickets", "Close Ticket"),
+                        'aria-label' => Yii::t("tickets", "Close Ticket"),
                         'data-reload-pjax-container' => 'mail_box',
                         'data-pjax' => '0',
                         'data-url' => Url::to([
@@ -51,20 +51,20 @@ $canChangeStatus = $model->canChangeStatus()
                             'id' => $model->id,
                         ]),
                         'class' => "btn btn-sm btn-danger p-jax-btn",
-                        'data-title' => Yii::t("app", "Close Ticket"),
+                        'data-title' => Yii::t("tickets", "Close Ticket"),
                         'data-method' => 'post',
                         'data-confirm-alert' => 1,
-                        'data-confirm-title' => Yii::t("app", "Close Ticket"),
+                        'data-confirm-title' => Yii::t("tickets", "Close Ticket"),
                     ]
                 ) : '';
             ?>
             <?= $canChangeStatus && $model->status == Tickets::STATUS_ACTIVE ?
                 Html::a(
-                    '<i class="fa fa-thumbs-up"></i> ' . Yii::t("app", "Change To Doing"),
+                    '<i class="fa fa-thumbs-up"></i> ' . Yii::t("tickets", "Change To Doing"),
                     'javascript:void(0)',
                     [
-                        'title' => Yii::t("app", "Change To Doing"),
-                        'aria-label' => Yii::t("app", "Change To Doing"),
+                        'title' => Yii::t("tickets", "Change To Doing"),
+                        'aria-label' => Yii::t("tickets", "Change To Doing"),
                         'data-reload-pjax-container' => 'mail_box',
                         'data-pjax' => '0',
                         'data-url' => Url::to([
@@ -73,7 +73,7 @@ $canChangeStatus = $model->canChangeStatus()
                             'id' => $model->id,
                         ]),
                         'class' => "btn btn-sm btn-info p-jax-btn",
-                        'data-title' => Yii::t("app", "Change To Doing"),
+                        'data-title' => Yii::t("tickets", "Change To Doing"),
                         'data-method' => 'post',
                         'data-confirm-alert' => 1,
                         'data-confirm-title' => Yii::t("app", "Change To Doing"),
@@ -82,11 +82,11 @@ $canChangeStatus = $model->canChangeStatus()
             ?>
             <?= $canChangeStatus && $model->status == Tickets::STATUS_CLOSE ?
                 Html::a(
-                    '<i class="fa fa-check"></i> ' . Yii::t("app", "Active"),
+                    '<i class="fa fa-check"></i> ' . Yii::t("tickets", "Active"),
                     'javascript:void(0)',
                     [
-                        'title' => Yii::t("app", "Active"),
-                        'aria-label' => Yii::t("app", "Active"),
+                        'title' => Yii::t("tickets", "Active"),
+                        'aria-label' => Yii::t("tickets", "Active"),
                         'data-reload-pjax-container' => 'mail_box',
                         'data-pjax' => '0',
                         'data-url' => Url::to([
@@ -95,18 +95,18 @@ $canChangeStatus = $model->canChangeStatus()
                             'id' => $model->id,
                         ]),
                         'class' => "btn btn-sm btn-success p-jax-btn",
-                        'data-title' => Yii::t("app", "Active"),
+                        'data-title' => Yii::t("tickets", "Active"),
                         'data-method' => 'post',
                         'data-confirm-alert' => 1,
-                        'data-confirm-title' => Yii::t("app", "Active"),
+                        'data-confirm-title' => Yii::t("tickets", "Active"),
                     ]
                 ) : '';
             ?>
             <?= $canChangeStatus && ($model->status == Tickets::STATUS_ACTIVE || $model->status == Tickets::STATUS_DOING) ?
-                Html::a('<i class="fas fa-directions"></i> ' . Yii::t("app", 'Refer'),
+                Html::a('<i class="fas fa-directions"></i> ' . Yii::t("tickets", 'Refer'),
                     'javascript:void(0)', [
-                        'title' => Yii::t("app", 'Refer Ticket'),
-                        'aria-label' => Yii::t("app", 'Refer Ticket'),
+                        'title' => Yii::t("tickets", 'Refer Ticket'),
+                        'aria-label' => Yii::t("tickets", 'Refer Ticket'),
                         'data-pjax' => '0',
                         'data-url' => Url::to([
                             'ticket/refer',
@@ -115,7 +115,7 @@ $canChangeStatus = $model->canChangeStatus()
                         'class' => 'btn btn-warning btn-sm',
                         'id' => 'refer-ticket',
                         'data-size' => 'modal-md',
-                        'data-title' => Yii::t('app', 'Refer Ticket'),
+                        'data-title' => Yii::t('tickets', 'Refer Ticket'),
                         'data-toggle' => 'modal',
                         'data-target' => '#modal-pjax-over',
                         'data-reload-pjax-container-on-show' => 0,
@@ -131,7 +131,7 @@ $canChangeStatus = $model->canChangeStatus()
         <?php if ($fullDetail) : ?>
             <div class="compose-btn">
                 <?= Html::a(
-                    '<i class="fa fa-comments-alt"></i> ' . Yii::t('app', 'History') . ' و ' . Yii::t('app', 'Thread'),
+                    '<i class="fa fa-comments-alt"></i> ' . Yii::t('tickets', 'History') . ' و ' . Yii::t('tickets', 'Thread'),
                     Url::to(['ticket/thread', 'id' => $model->parent_id && $model->kind === Tickets::KIND_THREAD ? $model->parent_id : $model->id]),
                     [
                         'class' => "btn btn-sm btn-linkedin",
@@ -141,8 +141,8 @@ $canChangeStatus = $model->canChangeStatus()
             </div>
         <?php endif; ?>
         <h4 class="mb-0">
-            <?= Yii::t("app", "Sender") . ':' ?>
-            <small class="badge-inverse px-2 py-1 d-inline-flex"><?= $model->creator_id === 0 ? Yii::t('app', 'System') : $model->creator?->fullName ?></small>
+            <?= Yii::t("tickets", "Sender") . ':' ?>
+            <small class="badge-inverse px-2 py-1 d-inline-flex"><?= $model->creator_id === 0 ? Yii::t('tickets', 'System') : $model->creator?->fullName ?></small>
         </h4>
     </div>
     <hr>

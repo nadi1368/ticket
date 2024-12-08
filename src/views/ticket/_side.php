@@ -28,7 +28,7 @@ $links = [
 
 <div class='left-part border-end w-20 flex-shrink-0 d-none d-lg-block h-auto'>
     <div class='px-9 pt-4 pb-3'>
-        <?= Html::button($t = Yii::t('app', 'New Ticket'), [
+        <?= Html::button($t = Yii::t('tickets', 'New Ticket'), [
             'class' => 'btn btn-primary fw-semibold py-8 w-100',
             'title' => $t,
             'data-title' => $t,
