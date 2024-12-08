@@ -38,12 +38,12 @@ if(thread_id){
     showThread(thread_id);
 }
 $('.mail-view-link').on('click',function (){
-        $('#thread_box').html('<div class="spinner-grow" role="status"> <span class="visually-hidden">Loading...</span></div> لطفا صبر کنید ...').attr('disabled', 'disabled')
         var id = $(this).data('mail_id');
         showThread(id);
 });
 
 function showThread(id) {
+    $('#thread_box').html('<div class="text-center" style="margin-top: 250px; font-weight: bold; font-size: 25px"><div class="spinner-grow" role="status"> <span class="visually-hidden">Loading...</span></div> <br> لطفا صبر کنید ...</div>').attr('disabled', 'disabled');
     $.ajax({
         url: '$ajax_url?id=' + id,
         type: 'GET',
