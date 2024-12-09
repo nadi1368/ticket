@@ -7,6 +7,8 @@ use hesabro\errorlog\behaviors\TraceBehavior;
 use hesabro\helpers\behaviors\JsonAdditional;
 use hesabro\helpers\components\Jdf;
 use hesabro\helpers\validators\DateValidator;
+use hesabro\notif\behaviors\NotifBehavior;
+use hesabro\notif\interfaces\NotifInterface;
 use hesabro\ticket\TicketModule;
 use mamadali\S3Storage\behaviors\StorageUploadBehavior;
 use mamadali\S3Storage\components\S3Storage;
@@ -55,7 +57,7 @@ use yii\web\UploadedFile;
  * @property User $assignedTo
  * @property self $parent
  */
-class Tickets extends \yii\db\ActiveRecord
+class Tickets extends \yii\db\ActiveRecord implements NotifInterface
 {
     const STATUS_DELETED = 0;
     const STATUS_ACTIVE = 1;
@@ -87,6 +89,8 @@ class Tickets extends \yii\db\ActiveRecord
     const SCENARIO_MASTER = 'master';
 
     const SCENARIO_REFER = 'refer';
+
+    const NOTIF_TICKET_SEND = 'notif_ticket_send';
 
     public $error_msg;
     public $owner;
@@ -172,6 +176,11 @@ class Tickets extends \yii\db\ActiveRecord
                     'user_number' => 'NullString',
                     'module_id' => 'NullInteger',
                 ],
+            ],
+            [
+                'class' => NotifBehavior::class,
+                'event' => self::NOTIF_TICKET_SEND,
+                'scenario' => [self::SCENARIO_SEND],
             ],
         ];
 
@@ -435,6 +444,9 @@ class Tickets extends \yii\db\ActiveRecord
             'ClassNameFilter' => [
                 (TicketModule::getInstance()->comfortItemsClass) => 'امکانات رفاهی',
             ],
+            'Notif' => [
+                self::NOTIF_TICKET_SEND => 'تیکت جدید',
+            ],
             'List' => $list_data,
             'Owner' => $list_data,
         ];
@@ -579,7 +591,7 @@ class Tickets extends \yii\db\ActiveRecord
 
     public function saveInbox()
     {
-        if (TicketModule::getInstance()->hasSlaves && $this->type == self::TYPE_MASTER) {
+        if (TicketModule::getInstance()->hasSlaves && $this->type == self::TYPE_MASTER && $this->parent) {
                 $model = new TicketsView();
                 $model->user_id = $this->parent->creator_id;
                 $model->comment_id = $this->id;
@@ -825,5 +837,62 @@ class Tickets extends \yii\db\ActiveRecord
             ->orderBy(['created' => SORT_DESC])
             ->limit(1)
             ->one();
+    }
+
+    public function notifUsers(string $event): array
+    {
+        if($this->type != self::TYPE_MASTER){
+            return [ArrayHelper::map($this->department->users, 'id', 'id')];
+        }
+        if($this->type == self::TYPE_MASTER && TicketModule::getInstance()->hasSlaves && Yii::$app->client->isMaster()){
+        }
+        return [];
+    }
+
+    public function notifTitle(string $event): string
+    {
+        return match ($this->getScenario()) {
+            self::SCENARIO_SEND => 'تیکت جدید',
+            default => '',
+        };
+    }
+
+    public function notifLink(string $event, ?int $userId): ?string
+    {
+        return Yii::$app->urlManager->createAbsoluteUrl([TicketModule::createUrl('ticket/index', ['thread_id' => $this->id])]);
+    }
+
+    public function notifDescription(string $event): ?string
+    {
+        if ($this->scenario === self::SCENARIO_SEND) {
+            return "یک پاسخ برای تیکت {$this->title} ثبت شد.";
+        }
+
+        return '';
+    }
+
+    public function notifConditionToSend(string $event): bool
+    {
+        return true;
+    }
+
+    public function notifSmsConditionToSend(string $event): bool
+    {
+        return true;
+    }
+
+    public function notifSmsDelayToSend(string $event): ?int
+    {
+        return 0;
+    }
+
+    public function notifEmailConditionToSend(string $event): bool
+    {
+        return true;
+    }
+
+    public function notifEmailDelayToSend(string $event): ?int
+    {
+        return 0;
     }
 }

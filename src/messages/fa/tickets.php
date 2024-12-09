@@ -42,4 +42,8 @@ return [
     'System' => 'سیستم',
     'Sender' => 'فرستنده',
     'New Ticket' => 'تیکت جدید',
+    'Notif Settings' => 'تنظیمات اعلان',
+    'Create' => 'ایجاد',
+    'Update' => 'به روز رسانی',
+    'Delete' => 'حذف',
 ];

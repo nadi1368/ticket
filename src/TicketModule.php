@@ -4,9 +4,11 @@ namespace hesabro\ticket;
 
 use Closure;
 use hesabro\ticket\models\Comments;
+use hesabro\ticket\models\Tickets;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\grid\GridView;
+use yii\helpers\Url;
 
 /**
  * To use stocks:
@@ -61,4 +63,17 @@ class TicketModule extends \yii\base\Module
 
 		parent::init();
 	}
+
+    public static function createUrl(string $path = null, array $params = [])
+    {
+        $moduleId = self::getInstance()?->id;
+
+        $path = trim($path ?: '', '/');
+        return Url::to([rtrim("/$moduleId/$path", '/'), ...$params]);
+    }
+
+    public static function getNotifEvents()
+    {
+        return Tickets::itemAlias('Notif') ?: [];
+    }
 }
