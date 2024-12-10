@@ -70,11 +70,12 @@ $(document).ready(function () {
         debugger;
         e.preventDefault();
         e.stopPropagation()
-        const form = $(this)
+        const form = $(this);
+        const formElement = this; // Get the raw HTML form element
         $.ajax({
             url: form.attr('action'),
             method: 'POST',
-            data: new FormData(this),
+            data: new FormData(formElement), // Use the raw HTML form element
             processData: false, 
             contentType: false,
             beforeSend: function () {

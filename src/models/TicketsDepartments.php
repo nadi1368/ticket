@@ -163,7 +163,8 @@ class TicketsDepartments extends \yii\db\ActiveRecord
     {
 		if($this->canDelete()){
 			$this->status = self::STATUS_DELETED;
-			if ($this->save()) {
+            $this->unlinkAll('users', true);
+			if ($this->save(false)) {
 				return true;
 			}
 		}

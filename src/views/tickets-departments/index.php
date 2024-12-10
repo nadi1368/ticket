@@ -65,9 +65,35 @@ $this->params['breadcrumbs'][] = $this->title;
                     },
                     'format' => 'raw',
                 ],
-                //'updated_at',
-                //'updated_by',
-                //'slave_id',
+                [
+                    'class' => 'common\widgets\grid\ActionColumn',
+                    'template' => '{delete}{update}',
+                    'buttons' => [
+                        'update' => function ($url, $model, $key) {
+                            return Html::a('<span class="far fa-edit"></span>',
+                                'javascript:void(0)', [
+                                    'title' => Yii::t('tickets', 'Update'),
+                                    'class' => 'text-success',
+                                    'data-size' => 'modal-xl',
+                                    'data-title' => Yii::t('tickets', 'Update'),
+                                    'data-toggle' => 'modal',
+                                    'data-target' => '#modal-pjax',
+                                    'data-url' => Url::to(['update', 'id' => $model->id]),
+                                    'data-reload-pjax-container-on-show' => 1,
+                                    'data-reload-pjax-container' => 'tickets-departments-p-jax',
+                                    'data-handle-form-submit' => 1,
+                                    'disabled' => true,
+                                ]);
+                        },
+                        'delete' => function ($url, $model, $key) {
+                            return $model->canDelete() ? Html::a('<span class="far fa-trash-alt text-danger"></span>', ['delete', 'id' => $key], [
+                                'title' => Yii::t('yii', 'Delete'),
+                                'data-confirm' => Yii::t('yii', 'Are you sure you want to delete this item?'),
+                                'data-method' => 'post',
+                            ]) : '';
+                        },
+                    ]
+                ],
             ],
         ]); ?>
         <?php Pjax::end(); ?>

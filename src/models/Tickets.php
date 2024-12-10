@@ -12,6 +12,7 @@ use hesabro\notif\interfaces\NotifInterface;
 use hesabro\ticket\TicketModule;
 use mamadali\S3Storage\behaviors\StorageUploadBehavior;
 use mamadali\S3Storage\components\S3Storage;
+use mamadali\S3Storage\models\StorageFileShared;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
@@ -143,11 +144,12 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
                 'attributes' => ['file'],
                 'accessFile' => S3Storage::ACCESS_PRIVATE,
                 'scenarios' => [self::SCENARIO_CREATE, self::SCENARIO_CREATE_APP, self::SCENARIO_SEND],
-                'path' => 'comments/{id}',
+                'path' => 'tickets/{id}',
+                'storageFilesModelClass' => TicketModule::getInstance()->hasSlaves ? StorageFileShared::class : null,
                 'sharedWith' => function (self $model) {
                     $clientComponentClass = TicketModule::getInstance()->clientComponentClass;
-                    if($clientComponentClass){
-                        return $model->type == self::TYPE_MASTER ? [$clientComponentClass::getMasterClient()->id] : [];
+                    if($clientComponentClass && self::TYPE_MASTER){
+                        return Yii::$app->client->isMaster() ? [$model->slave_id] : [$clientComponentClass::getMasterClient()->id];
                     }
                     return [];
                 }

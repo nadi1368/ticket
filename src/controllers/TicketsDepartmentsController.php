@@ -10,6 +10,7 @@ use hesabro\ticket\TicketModule;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -89,7 +90,7 @@ class TicketsDepartmentsController extends Controller
                 if ($model->load(Yii::$app->request->post())) {
                     $flag = $model->save();
                     if($flag){
-                        foreach ($model->user_ids as $user_id) {
+                        foreach ($model->user_ids ?? [] as $user_id) {
                             $model->link('users', Yii::$app->user->identityClass::findOne($user_id));
                         }
                     }
@@ -129,6 +130,7 @@ class TicketsDepartmentsController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+        $model->user_ids = ArrayHelper::map($model->users, 'id', 'id');
         if (!$model->canUpdate()) {
             $this->flash('danger', Yii::t("tickets", "Can Not Update"));
             return $this->redirect(['index']);
@@ -140,6 +142,12 @@ class TicketsDepartmentsController extends Controller
             try {
                 if ($model->load(Yii::$app->request->post())) {
                     $flag = $model->save();
+                    if($flag){
+                        $model->unlinkAll('users', true);
+                        foreach ($model->user_ids ?? [] as $user_id) {
+                            $model->link('users', Yii::$app->user->identityClass::findOne($user_id));
+                        }
+                    }
                     if($flag) {
                         $transaction->commit();
                         $result = [
