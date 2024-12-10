@@ -7,7 +7,7 @@ use hesabro\ticket\TicketModule;
 
 class NotifListenerController extends ListenerController
 {
-    protected ?string $group = 'automation';
+    protected ?string $group = 'tickets';
 
     public function __construct($id, $module, $config = [])
     {

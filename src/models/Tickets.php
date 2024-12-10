@@ -844,7 +844,7 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
     public function notifUsers(string $event): array
     {
         if($this->type != self::TYPE_MASTER){
-            return [ArrayHelper::map($this->department->users, 'id', 'id')];
+            return ArrayHelper::map($this->department->users, 'id', 'id');
         }
         if($this->type == self::TYPE_MASTER && TicketModule::getInstance()->hasSlaves && Yii::$app->client->isMaster()){
         }
