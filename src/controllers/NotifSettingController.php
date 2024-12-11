@@ -1,6 +1,6 @@
 <?php
 
-namespace hesabro\automation\controllers;
+namespace hesabro\ticket\controllers;
 
 use hesabro\notif\controllers\SettingController;
 use hesabro\ticket\TicketModule;

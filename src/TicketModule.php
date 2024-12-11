@@ -69,7 +69,7 @@ class TicketModule extends \yii\base\Module
         $moduleId = self::getInstance()?->id;
 
         $path = trim($path ?: '', '/');
-        return Url::to([rtrim("/$moduleId/$path", '/'), ...$params]);
+        return Url::to(array_merge([rtrim("/$moduleId/$path", '/')], $params));
     }
 
     public static function getNotifEvents()
