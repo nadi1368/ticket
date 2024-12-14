@@ -183,21 +183,16 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
                     'module_id' => 'NullInteger',
                 ],
             ],
-//            [
-//                'class' => NotifBehavior::class,
-//                'event' => self::NOTIF_TICKET_SEND,
-//                'scenario' => [self::SCENARIO_SEND],
-//            ],
-//            [
-//                'class' => NotifBehavior::class,
-//                'event' => self::NOTIF_TICKET_SEND_SUPPORT,
-//                'scenario' => [self::SCENARIO_SUPPORT],
-//            ],
         ];
 
-        if (TicketModule::getInstance()->notificationBehavior){
-            $behaviors['NotificationBehavior'] = TicketModule::getInstance()->notificationBehavior;
+        if(!TicketModule::getInstance()->hasSlaves){
+            $behaviors[] = [
+                'class' => NotifBehavior::class,
+                'event' => self::NOTIF_TICKET_SEND,
+                'scenario' => [self::SCENARIO_SEND],
+            ];
         }
+
         return $behaviors;
     }
 
@@ -886,7 +881,7 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
     {
         // If a user is assigned, return their ID.
         if ($this->assignedTo) {
-            return [$this->assignedTo->id];
+            $userIds = [$this->assignedTo->id];
         }
 
         // Map department users once for reuse.
@@ -894,7 +889,8 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
 
         // If not a master ticket, return department users.
         if ($this->type !== self::TYPE_MASTER) {
-            return $departmentUsers;
+            $userIds = $departmentUsers;
+
         }
 
         // Check if it is a master ticket with slave tickets enabled.
@@ -903,14 +899,20 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
         // Master client logic.
         if ($this->type === self::TYPE_MASTER && $hasSlaves) {
             if (Yii::$app->client->isMaster()) {
-                return $departmentUsers;
+                $userIds = $departmentUsers;
             }
 
             if (!$this->department_id) {
                 return [];
             }
 
-            return $departmentUsers;
+            $userIds = $departmentUsers;
+        }
+
+        foreach ($userIds as $key => $userId) {
+            if($userId == Yii::$app->user->id){
+                unset($userIds[$key]);
+            }
         }
 
         // Default case: no users to notify.
@@ -932,8 +934,16 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
 
     public function notifDescription(string $event): ?string
     {
-        if ($this->scenario === self::SCENARIO_SEND) {
-            return "یک پاسخ برای تیکت {$this->title} ثبت شد.";
+        if ($this->getScenario() === self::SCENARIO_SEND) {
+            if($this->parent_id){
+                return 'یک پاسخ برای تیکت "' . $this->title . '" ثبت شد.';
+            } else {
+                return 'یک تیکت جدید با عنوان  "' . $this->title . '" ایجاد شد.';
+            }
+        }
+
+        if ($this->getScenario() === self::SCENARIO_SUPPORT) {
+            return 'یک تیکت پشتیبانی با عنوان  "' . $this->title . '" ایجاد شد.';
         }
 
         return '';
