@@ -53,5 +53,6 @@ return [
     'No Department' => 'بدون دپارتمان',
     'Search' => 'جستجو',
     'Assigned To' => 'در حال انجام توسط',
-    'Support Team' => 'تیم پشتیبانی'
+    'Support Team' => 'تیم پشتیبانی',
+    'Client' => 'کلاینت',
 ];

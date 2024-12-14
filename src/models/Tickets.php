@@ -345,6 +345,7 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
             'send_sms_at' => Yii::t('tickets', 'Send Sms Date'),
             'department_id' => Yii::t('tickets', 'Department'),
             'assigned_to' => Yii::t('tickets', 'Assigned To'),
+            'slave_id' => Yii::t('tickets', 'Client'),
         ];
     }
 
