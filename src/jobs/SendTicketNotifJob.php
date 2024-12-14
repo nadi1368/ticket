@@ -3,6 +3,7 @@
 namespace hesabro\ticket\jobs;
 
 use console\job\MasterJob;
+use hesabro\notif\behaviors\NotifBehavior;
 use hesabro\ticket\models\Tickets;
 use Yii;
 use yii\queue\RetryableJobInterface;
@@ -18,7 +19,18 @@ class SendTicketNotifJob extends MasterJob implements \yii\queue\JobInterface, R
         if($ticket){
             $ticket->send_notif = true;
             $ticket->setScenario(Tickets::SCENARIO_SEND);
+            $ticket->attachBehavior('notif', [
+                'class' => NotifBehavior::class,
+                'event' => Tickets::NOTIF_TICKET_SEND,
+                'scenario' => [Tickets::SCENARIO_SEND],
+            ]);
             if($ticket->type == Tickets::TYPE_MASTER && !Yii::$app->client->isMaster() && !$ticket->department_id){
+                $ticket->detachBehavior('notif');
+                $ticket->attachBehavior('notif', [
+                    'class' => NotifBehavior::class,
+                    'event' => Tickets::NOTIF_TICKET_SEND_SUPPORT,
+                    'scenario' => [Tickets::SCENARIO_SUPPORT],
+                ]);
                 $ticket->setScenario(Tickets::SCENARIO_SUPPORT);
             }
             $ticket->sendNotif();

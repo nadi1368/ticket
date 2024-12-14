@@ -183,16 +183,16 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
                     'module_id' => 'NullInteger',
                 ],
             ],
-            [
-                'class' => NotifBehavior::class,
-                'event' => self::NOTIF_TICKET_SEND,
-                'scenario' => [self::SCENARIO_SEND],
-            ],
-            [
-                'class' => NotifBehavior::class,
-                'event' => self::NOTIF_TICKET_SEND_SUPPORT,
-                'scenario' => [self::SCENARIO_SUPPORT],
-            ],
+//            [
+//                'class' => NotifBehavior::class,
+//                'event' => self::NOTIF_TICKET_SEND,
+//                'scenario' => [self::SCENARIO_SEND],
+//            ],
+//            [
+//                'class' => NotifBehavior::class,
+//                'event' => self::NOTIF_TICKET_SEND_SUPPORT,
+//                'scenario' => [self::SCENARIO_SUPPORT],
+//            ],
         ];
 
         if (TicketModule::getInstance()->notificationBehavior){
