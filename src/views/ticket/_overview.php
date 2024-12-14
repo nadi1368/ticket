@@ -2,6 +2,7 @@
 
 use hesabro\ticket\models\Tickets;
 use hesabro\ticket\models\TicketsSearch;
+use hesabro\ticket\TicketModule;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\Pjax;
@@ -21,7 +22,6 @@ $canChangeStatus = $model->canChangeStatus()
 
 <div class="row">
     <div class="col-md-4">
-        <?php Pjax::begin(['id' => 'mail_box']); ?>
         <div class="compose-btn">
             <?= $fullDetail ? Html::a(
                 '<i class="fa fa-reply"></i> ' . Yii::t("tickets", "Answer"),
@@ -82,11 +82,11 @@ $canChangeStatus = $model->canChangeStatus()
             ?>
             <?= $canChangeStatus && $model->status == Tickets::STATUS_CLOSE ?
                 Html::a(
-                    '<i class="fa fa-check"></i> ' . Yii::t("tickets", "Active"),
+                    '<i class="fa fa-check"></i> ' . Yii::t("tickets", "Open Ticket"),
                     'javascript:void(0)',
                     [
-                        'title' => Yii::t("tickets", "Active"),
-                        'aria-label' => Yii::t("tickets", "Active"),
+                        'title' => Yii::t("tickets", "Open Ticket"),
+                        'aria-label' => Yii::t("tickets", "Open Ticket"),
                         'data-reload-pjax-container' => 'mail_box',
                         'data-pjax' => '0',
                         'data-url' => Url::to([
@@ -95,10 +95,10 @@ $canChangeStatus = $model->canChangeStatus()
                             'id' => $model->id,
                         ]),
                         'class' => "btn btn-sm btn-success p-jax-btn",
-                        'data-title' => Yii::t("tickets", "Active"),
+                        'data-title' => Yii::t("tickets", "Open Ticket"),
                         'data-method' => 'post',
                         'data-confirm-alert' => 1,
-                        'data-confirm-title' => Yii::t("tickets", "Active"),
+                        'data-confirm-title' => Yii::t("tickets", "Open Ticket"),
                     ]
                 ) : '';
             ?>
@@ -124,7 +124,6 @@ $canChangeStatus = $model->canChangeStatus()
                         'disabled' => true
                     ]) : '' ?>
         </div>
-        <?php Pjax::end(); ?>
     </div>
     <div class="col-md-6 d-flex align-items-center justify-content-end" style="gap: 8px">
         <p class="date mb-0"> <?= Yii::$app->jdate->date('Y/m/d H:i', $model->created) ?></p>
@@ -142,20 +141,23 @@ $canChangeStatus = $model->canChangeStatus()
         <?php endif; ?>
         <h4 class="mb-0">
             <?= Yii::t("tickets", "Sender") . ':' ?>
-            <small class="badge-inverse px-2 py-1 d-inline-flex"><?= $model->creator_id === 0 ? Yii::t('tickets', 'System') : $model->creator?->fullName ?></small>
+            <span class="badge badge-inverse px-2 py-1 d-inline-flex">
+                <?= $model->creator_id === 0 ? Yii::t('tickets', 'System') : $model->getCreatorFullName() ?>
+            </span>
+            <?php if ($model->type == Tickets::TYPE_MASTER && TicketModule::getInstance()->hasSlaves && Yii::$app->client->isMaster()): ?>
+                <span class="badge badge-info px-2 py-1 d-inline-flex">
+                    <?= \backend\modules\master\models\Client::findOne($model->slave_id)->title ?>
+                </span>
+            <?php endif; ?>
         </h4>
     </div>
-    <hr>
-    <div class='col-md-7 mt-4'>
+    <hr class="mt-3">
+    <div class='col-md-7 mt-1'>
         <h4 class='mb-0'>
             <?= Yii::t('tickets', 'Department') . ':' ?>
-            <?= $model->department?->title ?>
-        </h4>
-    </div>
-    <div class="col-md-5 mt-4">
-        <h4 class="mb-0">
-            <?= Yii::t("tickets", "Receivers") . ':' ?>
-            <?= $model->getOwnerList() ?>
+            <span class="badge badge-info px-2 py-1 d-inline-flex">
+                <?= $model->getDepartmentTitle() ?: Yii::t('tickets', 'No Department') ?>
+            </span>
         </h4>
     </div>
     <?php if ($fullDetail) : ?>

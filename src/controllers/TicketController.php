@@ -66,43 +66,6 @@ class TicketController extends Controller
         ]);
     }
 
-    public function actionInbox()
-    {
-        $searchModel = new TicketsSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
-        return $this->render('inbox_old', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
-    }
-
-    /**
-     * Lists all Comments models.
-     * @return mixed
-     */
-    public function actionOutbox()
-    {
-        $searchModel = new TicketsSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams, outbox: true);
-
-        return $this->render('outbox', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
-    }
-
-
-    public function actionView($id)
-    {
-        $model = $this->findModel($id);
-        $model->setViewed();
-
-        return $this->renderAjax('view', [
-            'model' => $model,
-        ]);
-    }
-
 
     public function actionThread($id)
     {
@@ -144,6 +107,7 @@ class TicketController extends Controller
             $model->class_id = $thread->class_id;
             $model->link = $thread->link;
             $model->type = $thread->type;
+            $model->assigned_to = $thread->assigned_to ?: null;
             if(TicketModule::getInstance()->hasSlaves && Yii::$app->client->isMaster()){
                 $model->slave_id = $thread->slave_id;
             }
@@ -189,11 +153,12 @@ class TicketController extends Controller
             'parent_id' => $comment->parent_id ?: $comment->id,
             'creator_id' => Yii::$app->user->getId(),
             'kind' => Tickets::KIND_REFER,
-            'type' => Tickets::TYPE_PRIVATE,
+            'type' => $comment->type,
             'class_name' => $comment->class_name,
             'class_id' => $comment->class_id,
             'link' => $comment->link,
             'title' => $comment->title,
+            'des' => $comment->des,
             'priority' => $comment->priority,
             'status' => $comment->status,
             'due_date' => $comment->due_date,
@@ -226,7 +191,9 @@ class TicketController extends Controller
             $model->hasErrors() && $this->performAjaxValidation($model);
             return $this->asJson([
                 'success' => $success,
-                'msg' => Yii::t('app', $success ? 'Item Referred' : 'Error In Save Info')
+                'msg' => Yii::t('app', $success ? 'Item Referred' : 'Error In Save Info'),
+                'redirect' => true,
+                'url' => Url::to(['index', 'thread_id' => $model->id])
             ]);
         }
 
@@ -235,84 +202,6 @@ class TicketController extends Controller
             'comment' => $comment
         ]);
     }
-
-    /**
-     * @param $title
-     * @param null $class_name
-     * @param null $class_id
-     * @param null $link
-     * @return false|string
-     * 
-     */
-    public function actionCreate($title, $class_name = null, $class_id = null, $link = null)
-    {
-        $response = ['success' => false, 'data' => '', 'msg' => 'خطا در ثبت اطلاعات.'];
-
-        $model = new Tickets(['scenario' => Tickets::SCENARIO_CREATE]);
-        $model->due_date = Yii::$app->jdate->date('Y/m/d');
-        if ($model->load(Yii::$app->request->post())) {
-            $model->class_name = $class_name;
-            $model->title = $title;
-            $model->class_id = $class_id;
-            $model->link = $link;
-            $model->type = is_array($model->owner) ? Tickets::TYPE_PRIVATE : Tickets::TYPE_PUBLIC;
-            $db = TicketModule::getInstance()->db;
-            $transaction = Yii::$app->$db->beginTransaction();
-            try {
-                if ($flag = $model->save()) {
-                    $flag = $flag && $model->saveInbox();
-                    if ($flag) {
-                        $transaction->commit();
-                        $response['success'] = true;
-                        $response['msg'] = Yii::t("app", "Item created");
-                        $model = new Tickets();
-                        $response['data'] = $this->renderAjax('_form', [
-                            'model' => $model,
-                            'title' => $title,
-                            'class_name' => $class_name,
-                            'class_id' => $class_id,
-                            'link' => $link,
-                            'comments' => Tickets::find()->byClass($class_name, $class_id)->orderBy(['id' => SORT_DESC])->all(),
-                        ]);
-                    } else {
-                        $transaction->rollBack();
-                        $response['data'] = $this->renderAjax('_form', [
-                            'model' => $model,
-                            'title' => $title,
-                            'class_name' => $class_name,
-                            'class_id' => $class_id,
-                            'link' => $link,
-                            'comments' => Tickets::find()->byClass($class_name, $class_id)->orderBy(['id' => SORT_DESC])->all(),
-                        ]);
-                    }
-                } else {
-                    $response['data'] = $this->renderAjax('_form', [
-                        'model' => $model,
-                        'title' => $title,
-                        'class_name' => $class_name,
-                        'class_id' => $class_id,
-                        'link' => $link,
-                        'comments' => Tickets::find()->byClass($class_name, $class_id)->orderBy(['id' => SORT_DESC])->all(),
-                    ]);
-                }
-            } catch (Exception $e) {
-                $transaction->rollBack();
-                Yii::error($e->getMessage() . $e->getTraceAsString(),  __METHOD__ . ':' . __LINE__);
-            }
-
-            return json_encode($response);
-        } else {
-            return $this->renderAjax('_form', [
-                'model' => $model,
-                'title' => $title,
-                'class_name' => $class_name,
-                'class_id' => $class_id,
-                'link' => $link,
-                'comments' => Tickets::find()->byClass($class_name, $class_id)->orderBy(['id' => SORT_DESC])->all(),
-            ]);
-        }
-    }
-
 
     /**
      * Creates a new Comments model.
@@ -351,6 +240,8 @@ class TicketController extends Controller
                             'owner' => $owner,
                             'parent_id' => $parent_id,
                         ]);
+                        $response['redirect'] = true;
+                        $response['url'] = Url::to(['index', 'thread_id' => $model->id]);
                     } else {
                         $transaction->rollBack();
                         $response['msg'] = $model->errors ? Html::errorSummary($model) : Yii::t('app', 'Error In Save Info');
@@ -404,7 +295,9 @@ class TicketController extends Controller
                 Tickets::updateAll(['status' => $type, 'additional_data' => new Expression('JSON_SET(additional_data, "$.assigned_to", ' . Yii::$app->user->id . ')')], ['OR', ['id' => $model->parent_id ?: $model->id], ['parent_id' => $model->parent_id ?: $model->id]]);
                 $result = [
                     'status' => true,
-                    'message' => Yii::t("app", "Item Updated")
+                    'message' => Yii::t("app", "Item Updated"),
+                    'redirect' => true,
+                    'url' => Url::to(['index', 'thread_id' => $model->id])
                 ];
             } else {
                 $result = [

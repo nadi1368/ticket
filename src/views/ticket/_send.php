@@ -2,6 +2,7 @@
 
 use hesabro\ticket\models\Tickets;
 use hesabro\ticket\models\TicketsDepartments;
+use hesabro\ticket\TicketModule;
 use yii\helpers\Html;
 use yii\bootstrap4\ActiveForm;
 use yii\widgets\MaskedInput;
@@ -54,11 +55,21 @@ $this->registerCss($styles);
         <?php endif; ?>
         <div class="row">
             <div class='col-md-6'>
-                <?= $form->field($model, 'department_id')->dropdownList($model->type == Tickets::TYPE_MASTER ? (TicketsDepartments::itemAlias('MasterList') ?: []) : (TicketsDepartments::itemAlias('List') ?: []), [
-                    'prompt' => Yii::t('tickets', 'Select...'),
-                    'disabled' => $parent_id > 0 ? true : false,
-                    'allowClear' => true
-                ]); ?>
+                <?php if (TicketModule::getInstance()->hasSlaves && Yii::$app->client->isMaster()): ?>
+                    <?= $form->field($model, 'slave_id')->widget(Select2::class, [
+                        'data' => Tickets::itemAlias('ClientList'),
+                        'options' => ['placeholder' => Yii::t('tickets', 'Select...')],
+                        'pluginOptions' => [
+                            'allowClear' => true
+                        ]
+                    ]) ?>
+                <?php else: ?>
+                    <?= $form->field($model, 'department_id')->dropdownList($model->type == Tickets::TYPE_MASTER ? (TicketsDepartments::itemAlias('MasterList') ?: []) : (TicketsDepartments::itemAlias('List') ?: []), [
+                        'prompt' => Yii::t('tickets', 'Select...'),
+                        'disabled' => $parent_id > 0 ? true : false,
+                        'allowClear' => true
+                    ]); ?>
+                <?php endif; ?>
             </div>
             <div class='col-md-6'>
                 <?= $form->field($model, 'priority')->dropDownList(Tickets::itemAlias('Priority'), ['prompt' => Yii::t('app', 'Select...')]) ?>
@@ -68,7 +79,7 @@ $this->registerCss($styles);
             </div>
 
             <?php if ($model->type != Tickets::TYPE_MASTER): ?>
-                <div class="col-md-4 date-input">
+                <div class="col-md-6 date-input">
                     <?= $form->field($model, 'due_date')->widget(MaskedInput::class, [
                         'mask' => '9999/99/99',
                     ]) ?>

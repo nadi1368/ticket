@@ -2,6 +2,7 @@
 
 namespace hesabro\ticket\models;
 
+use backend\modules\master\models\Client;
 use hesabro\changelog\behaviors\LogBehavior;
 use hesabro\errorlog\behaviors\TraceBehavior;
 use hesabro\helpers\behaviors\JsonAdditional;
@@ -9,6 +10,7 @@ use hesabro\helpers\components\Jdf;
 use hesabro\helpers\validators\DateValidator;
 use hesabro\notif\behaviors\NotifBehavior;
 use hesabro\notif\interfaces\NotifInterface;
+use hesabro\ticket\jobs\SendTicketNotifJob;
 use hesabro\ticket\TicketModule;
 use mamadali\S3Storage\behaviors\StorageUploadBehavior;
 use mamadali\S3Storage\components\S3Storage;
@@ -23,7 +25,7 @@ use yii\web\UploadedFile;
  * This is the model class for table "{{%comments}}".
  *
  * @mixin StorageUploadBehavior
- * @mixin NotificationBehavior
+ * @mixin NotifBehavior
  *
  * @property int $id
  * @property int $parent_id
@@ -87,11 +89,12 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
     const SCENARIO_ANSWER = 'answer';
     const SCENARIO_AUTO = 'auto';
     const SCENARIO_REPORT_BUG = 'report_bug';
-    const SCENARIO_MASTER = 'master';
+    const SCENARIO_SUPPORT = 'support';
 
     const SCENARIO_REFER = 'refer';
 
     const NOTIF_TICKET_SEND = 'notif_ticket_send';
+    const NOTIF_TICKET_SEND_SUPPORT = 'notif_ticket_send_support';
 
     public $error_msg;
     public $owner;
@@ -122,6 +125,7 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
     public $user_fullName;
     public $user_number;
     public $module_id;
+    public $send_notif = false;
 
     /**
      * {@inheritdoc}
@@ -184,6 +188,11 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
                 'event' => self::NOTIF_TICKET_SEND,
                 'scenario' => [self::SCENARIO_SEND],
             ],
+            [
+                'class' => NotifBehavior::class,
+                'event' => self::NOTIF_TICKET_SEND_SUPPORT,
+                'scenario' => [self::SCENARIO_SUPPORT],
+            ],
         ];
 
         if (TicketModule::getInstance()->notificationBehavior){
@@ -212,7 +221,10 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
     public function rules()
     {
         return [
-            [['des', 'priority', 'title', 'department_id'], 'required', 'on' => [self::SCENARIO_CREATE, self::SCENARIO_SEND]],
+            [['des', 'priority', 'title'], 'required', 'on' => [self::SCENARIO_CREATE, self::SCENARIO_SEND]],
+            [['department_id'], 'required', 'on' => [self::SCENARIO_CREATE, self::SCENARIO_SEND], 'when' => function (self $model) {
+                return ;
+            }],
             [['department_id'], 'required', 'on' => [self::SCENARIO_REFER]],
             [['des', 'priority', 'class_id', 'due_date'], 'required', 'on' => [self::SCENARIO_CREATE_APP]],
             [['des', 'priority'], 'required', 'on' => [self::SCENARIO_REPORT_BUG]],
@@ -298,6 +310,10 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
         $scenarios[self::SCENARIO_REPORT_BUG] = ['des', 'priority'];
         $scenarios[self::SCENARIO_REFER] = ['department_id', 'des', 'owner', 'send_sms', 'send_email', 'send_sms_at', 'send_email_at'];
 
+        if(TicketModule::getInstance()->hasSlaves && Yii::$app->client->isMaster()){
+            $scenarios[self::SCENARIO_SEND][] = 'slave_id';
+        }
+
         return $scenarios;
     }
 
@@ -328,6 +344,7 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
             'send_email_at' => Yii::t('tickets', 'Send Email Date'),
             'send_sms_at' => Yii::t('tickets', 'Send Sms Date'),
             'department_id' => Yii::t('tickets', 'Department'),
+            'assigned_to' => Yii::t('tickets', 'Assigned To'),
         ];
     }
 
@@ -365,9 +382,26 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
         return $this->hasOne(CommentsType::class, ['id' => 'type_task']);
     }
 
-    public function getDepartment()
+    public function getDepartment(): \yii\db\ActiveQuery
     {
         return $this->hasOne(TicketsDepartments::class, ['id' => 'department_id']);
+    }
+
+    public function getDepartmentTitle(): ?string
+    {
+        if(!$this->department_id){
+            return null;
+        }
+        $title = null;
+        if($this->type == self::TYPE_MASTER && TicketModule::getInstance()->hasSlaves && !Yii::$app->client->isMaster()){
+            Yii::$app->params['findMasterDepartments'] = true;
+            $title = TicketsDepartments::findOne($this->department_id)?->title;
+        }
+        if(!$title){
+            Yii::$app->params['findMasterDepartments'] = false;
+            $title = TicketsDepartments::findOne($this->department_id)?->title;
+        }
+        return $title;
     }
 
     public function getAssignedTo()
@@ -400,7 +434,7 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
         if($this->type == self::TYPE_MASTER){
             return $this->user_fullName;
         }
-        return $this->creator->fullName;
+        return $this->creator?->fullName;
     }
 
     /**
@@ -418,6 +452,10 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
         if ($type == 'Owner') {
             $userClass = TicketModule::getInstance()->user;
             $list_data = $userClass::getUserWithRoles(TicketModule::getInstance()->ticketsRole);
+        }
+
+        if($type == 'ClientList'){
+            $list_data = ArrayHelper::map(Client::find()->justActive()->all(), 'id', 'title');
         }
 
         $_items = [
@@ -448,9 +486,11 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
             ],
             'Notif' => [
                 self::NOTIF_TICKET_SEND => 'تیکت جدید',
+                self::NOTIF_TICKET_SEND_SUPPORT => 'تیکت پشتیبانی',
             ],
             'List' => $list_data,
             'Owner' => $list_data,
+            'ClientList' => $list_data,
         ];
 
         if (isset($code))
@@ -843,11 +883,36 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
 
     public function notifUsers(string $event): array
     {
-        if($this->type != self::TYPE_MASTER){
-            return ArrayHelper::map($this->department->users, 'id', 'id');
+        // If a user is assigned, return their ID.
+        if ($this->assignedTo) {
+            return [$this->assignedTo->id];
         }
-        if($this->type == self::TYPE_MASTER && TicketModule::getInstance()->hasSlaves && Yii::$app->client->isMaster()){
+
+        // Map department users once for reuse.
+        $departmentUsers = $this->department ? ArrayHelper::map($this->department->users, 'id', 'id') : [];
+
+        // If not a master ticket, return department users.
+        if ($this->type !== self::TYPE_MASTER) {
+            return $departmentUsers;
         }
+
+        // Check if it is a master ticket with slave tickets enabled.
+        $hasSlaves = TicketModule::getInstance()->hasSlaves;
+
+        // Master client logic.
+        if ($this->type === self::TYPE_MASTER && $hasSlaves) {
+            if (Yii::$app->client->isMaster()) {
+                return $departmentUsers;
+            }
+
+            if (!$this->department_id) {
+                return [];
+            }
+
+            return $departmentUsers;
+        }
+
+        // Default case: no users to notify.
         return [];
     }
 
@@ -875,7 +940,7 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
 
     public function notifConditionToSend(string $event): bool
     {
-        return true;
+        return $this->send_notif;
     }
 
     public function notifSmsConditionToSend(string $event): bool
@@ -896,5 +961,21 @@ class Tickets extends \yii\db\ActiveRecord implements NotifInterface
     public function notifEmailDelayToSend(string $event): ?int
     {
         return 0;
+    }
+
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        if(TicketModule::getInstance()->hasSlaves){
+            $sendNotifClientId = Yii::$app->client->id;
+            if ($this->type == self::TYPE_MASTER){
+                $clientComponentClass = TicketModule::getInstance()->clientComponentClass;
+                $sendNotifClientId = Yii::$app->client->isMaster() ? $this->slave_id : $clientComponentClass::getMasterClient()->id;
+            }
+            Yii::$app->queue->push(new SendTicketNotifJob([
+                'slaveId' => $sendNotifClientId,
+                'ticket_id' => $this->id,
+            ]));
+        }
     }
 }

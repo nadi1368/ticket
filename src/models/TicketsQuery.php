@@ -38,20 +38,27 @@ class TicketsQuery extends \yii\db\ActiveQuery
 
     public function my(): self
     {
+        $ticketHandlerPermission = TicketModule::getInstance()->ticketHandlerPermission;
         return $this->joinWith(['commentsViews', 'department.usersPivot'])->andWhere([
             'OR',
             [TicketsView::tableName() . '.user_id' => Yii::$app->user->id],
             [TicketsDepartmentUsers::tableName() . '.user_id' => Yii::$app->user->id],
-            [Tickets::tableName() . '.creator_id' => Yii::$app->user->id]
+            [Tickets::tableName() . '.creator_id' => Yii::$app->user->id],
+            Yii::$app->user->can($ticketHandlerPermission) ? [Tickets::tableName() . '.department_id' => null] : [],
         ]);
     }
 
     public function inbox(): self
     {
+        $ticketHandlerPermission = TicketModule::getInstance()->ticketHandlerPermission;
         return $this->joinWith(['commentsViews', 'department.usersPivot'])->andWhere([
-            'OR',
-            [TicketsView::tableName() . '.user_id' => Yii::$app->user->id],
-            [TicketsDepartmentUsers::tableName() . '.user_id' => Yii::$app->user->id],
+            'AND',
+            [
+                'OR',
+                [TicketsView::tableName() . '.user_id' => Yii::$app->user->id],
+                [TicketsDepartmentUsers::tableName() . '.user_id' => Yii::$app->user->id],
+                Yii::$app->user->can($ticketHandlerPermission) ? [Tickets::tableName() . '.department_id' => null]  : [],
+            ],
             TicketModule::getInstance()->hasSlaves && Yii::$app->client->isMaster() ? [Tickets::tableName() . '.type' => Tickets::TYPE_MASTER] : [],
         ]);
     }
@@ -181,5 +188,19 @@ class TicketsQuery extends \yii\db\ActiveQuery
         $this->andWhere(['<>', Tickets::tableName() . '.creator_id', '0']);
 
         return $this;
+    }
+
+    public function assignedTo(int $user_id): self
+    {
+        return $this->andWhere(['JSON_EXTRACT(' . Tickets::tableName() . '.`additional_data`, "$.assigned_to")' => $user_id]);
+    }
+
+    public function searchKey(string $search_key)
+    {
+        return $this->andWhere([
+            'OR',
+            ['like', Tickets::tableName() . '.title', $search_key],
+            ['like', Tickets::tableName() . '.des', $search_key],
+        ]);
     }
 }

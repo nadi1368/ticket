@@ -7,11 +7,16 @@ use hesabro\ticket\TicketModule;
 <div class='min-width-340'>
     <div class='border-end user-chat-box h-100'>
         <div class='px-4 pt-9 pb-6 d-none d-lg-block'>
-            <form class='position-relative'>
-                <input type='text' class='form-control search-chat py-2 ps-5' id='text-srh'
-                       placeholder='Search'/>
-                <i class='ti ti-search position-absolute top-50 start-0 translate-middle-y fs-6 text-dark ms-3'></i>
-            </form>
+            <?php $form = \yii\bootstrap4\ActiveForm::begin([
+                //'action' => [Yii::$app->controller->action->id],
+                'method' => 'get',
+            ]); ?>
+            <div class="position-relative">
+                <input type='text' name="TicketsSearch[search_key]" class='form-control search-chat py-2 ps-5' id='ticketssearch-search_key'
+                       placeholder='<?= Yii::t('tickets', 'Search') ?>' <?= $searchModel->search_key ? 'value="'.$searchModel->search_key.'"' : '' ?>/>
+                <i class='fal fa-search position-absolute top-50 start-0 translate-middle-y fs-6 ms-3'></i>
+            </div>
+            <?php \yii\bootstrap4\ActiveForm::end(); ?>
         </div>
         <div class='app-chat'>
             <ul class='chat-users mh-n100' data-simplebar>
@@ -50,6 +55,9 @@ use hesabro\ticket\TicketModule;
                                 <?php endif; ?>
                                 <?php if ($model->type == Tickets::TYPE_MASTER && TicketModule::getInstance()->hasSlaves && Yii::$app->client->isMaster()): ?>
                                     <span class='badge text-bg-info'><?= \backend\modules\master\models\Client::findOne($model->slave_id)->title ?></span>
+                                <?php endif; ?>
+                                <?php if ($model->type == Tickets::TYPE_MASTER): ?>
+                                    <span class='badge text-bg-secondary'><?= Yii::t('tickets', 'Support Ticket') ?></span>
                                 <?php endif; ?>
                             </div>
                         </a>

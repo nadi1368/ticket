@@ -1,5 +1,6 @@
 <?php
 
+use common\models\User;
 use hesabro\ticket\models\Tickets;
 use yii\helpers\Html;
 use yii\widgets\Pjax;
@@ -34,7 +35,7 @@ $rootTicket = current(array_filter($messages, fn(Tickets $comment) => !$comment-
 
     <?php if ($thread): ?>
         <div class="px-3 py-4">
-            <?= $this->render('@hesabro/ticket/views/ticket/_overview', ['model' => $thread]) ?>
+            <?= $this->render('_overview', ['model' => $thread]) ?>
         </div>
         <hr class="m-0">
     <?php endif; ?>
@@ -71,7 +72,7 @@ $rootTicket = current(array_filter($messages, fn(Tickets $comment) => !$comment-
                 <?php if ($message->kind === Tickets::KIND_REFER): ?>
                     <div class="row justify-content-center">
                         <div class="col-4 history-card d-flex flex-column">
-                            <span>این تیکت توسط <?= $message->getCreatorFullName() ?> به <?= implode('، ', array_map(fn(User $user) => $user->fullName, $message->users)) ?> ارجاع داده شد.</span>
+                            <span>این تیکت توسط <?= $message->getCreatorFullName() ?> به دپارتمان "<?= $thread->department?->title ?>" ارجاع داده شد.</span>
                             <small class="text-center"><?= Yii::$app->jdate->date('H:i Y/m/d', $message->created) ?></small>
                         </div>
                     </div>

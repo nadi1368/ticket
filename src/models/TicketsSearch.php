@@ -14,14 +14,19 @@ class TicketsSearch extends Tickets
 {
     public $fromDate, $toDate;
 
+    public $type;
+    public $assigned_to;
+    public $search_key;
+
     /**
      * {@inheritdoc}
      */
     public function rules()
     {
         return [
-            [['id', 'creator_id', 'update_id', 'class_id', 'priority', 'status', 'created', 'changed', 'parent_id', 'unread'], 'integer'],
+            [['id', 'creator_id', 'update_id', 'class_id', 'priority', 'status', 'created', 'changed', 'parent_id', 'unread', 'department_id', 'assigned_to'], 'integer'],
             [['owner', 'class_name', 'des', 'due_date', 'fromDate', 'toDate'], 'safe'],
+            [['search_key'], 'string'],
             [['fromDate'], DateValidator::class, 'when' => function ($model) {
                 return !empty($this->fromDate);
             }],
@@ -64,9 +69,11 @@ class TicketsSearch extends Tickets
             $query = $baseQuery;
         } else if ($outbox) {
             $query = Tickets::find()->outbox();
+            $this->type = 'outbox';
         } else {
             $query = Tickets::find()->inbox();
             (((int) $this->status) === Tickets::STATUS_ACTIVE) && $query->excludeViewedThreads();
+            $this->type = 'inbox';
         }
 
         // add conditions that should always apply here
@@ -93,6 +100,7 @@ class TicketsSearch extends Tickets
             Tickets::tableName() . '.status' => $this->status,
             Tickets::tableName() . '.created' => $this->created,
             Tickets::tableName() . '.changed' => $this->changed,
+            Tickets::tableName() . '.department_id' => $this->department_id,
         ]);
 
         $query->andFilterWhere(['like', Tickets::tableName() . '.class_name', $this->class_name])
@@ -110,6 +118,16 @@ class TicketsSearch extends Tickets
         if($my) {
             $query->my();
         }
+
+        if($this->assigned_to){
+            $query->assignedTo($this->assigned_to);
+        }
+
+        if($this->search_key){
+            $query->searchKey($this->search_key);
+        }
+
+        $a = $query->createCommand()->rawSql;
 
         return $dataProvider;
     }

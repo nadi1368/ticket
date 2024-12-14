@@ -41,7 +41,6 @@ class TicketModule extends \yii\base\Module
 
     public string $db = 'db';
 
-
     public string | null $user = null;
 
     public ?string $comfortItemsClass;
@@ -54,6 +53,7 @@ class TicketModule extends \yii\base\Module
     public ?array $notificationBehavior = null;
     public ?bool $hasSlaves = false;
     public ?Closure $notifyToSupporter = null;
+    public string $ticketHandlerPermission = 'ticketHandler';
 
 	public function init()
 	{

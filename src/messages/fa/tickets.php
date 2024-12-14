@@ -46,4 +46,12 @@ return [
     'Create' => 'ایجاد',
     'Update' => 'به روز رسانی',
     'Delete' => 'حذف',
+    'Closed' => 'بسته شده',
+    'Open Ticket' => 'باز کردن تیکت',
+    'New Support Ticket Ticket' => 'ارسال تیکت پشتیبانی',
+    'Support Ticket' => 'تیکت پشتیبانی',
+    'No Department' => 'بدون دپارتمان',
+    'Search' => 'جستجو',
+    'Assigned To' => 'در حال انجام توسط',
+    'Support Team' => 'تیم پشتیبانی'
 ];

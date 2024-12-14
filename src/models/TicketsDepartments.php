@@ -140,6 +140,9 @@ class TicketsDepartments extends \yii\db\ActiveRecord
      */
     public static function find($slave_id = null)
     {
+        if(isset(Yii::$app->params['findMasterDepartments']) && Yii::$app->params['findMasterDepartments']){
+            $slave_id = Client::getMasterClient()->id;
+        }
         $query = new TicketsDepartmentsQuery(get_called_class());
         if(TicketModule::getInstance()->hasSlaves){
             $query->bySlave($slave_id);
